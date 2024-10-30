@@ -1,20 +1,41 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import "react-native-gesture-handler";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MD3LightTheme, PaperProvider } from "react-native-paper";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { persistor, store } from "src/redux/store";
+import Toast from "react-native-toast-message";
+import { NavigationContainer } from "@react-navigation/native";
+import { StatusBar } from "react-native";
+import RootStackRouter from "src/components/router/Stack.root";
+
+const theme = {
+  ...MD3LightTheme, // or MD3DarkTheme
+};
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    mutations: { retry: 3 },
+  },
+});
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <PaperProvider theme={theme}>
+            <QueryClientProvider client={queryClient}>
+              <NavigationContainer>
+                <StatusBar backgroundColor="black" barStyle="light-content" />
+                <RootStackRouter />
+              </NavigationContainer>
+            </QueryClientProvider>
+          </PaperProvider>
+        </PersistGate>
+      </Provider>
+
+      <Toast />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
