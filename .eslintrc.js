@@ -9,4 +9,7 @@ module.exports = {
   ignorePatterns: [".eslintrc.cjs", "assets"],
   parser: "@typescript-eslint/parser",
   plugins: ["react-refresh"],
+  rules: {
+    "@typescript-eslint/no-var-requires": 0,
+  },
 };

@@ -8,8 +8,10 @@ module.exports = function (api) {
       [
         "module-resolver",
         {
+          root: ["."],
           alias: {
             src: "./src",
+            assets: "./assets",
           },
         },
       ],
