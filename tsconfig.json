@@ -11,8 +11,9 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "src/*": ["./src/*"]
+      "src/*": ["src/*"],
+      "assets/*": ["assets/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "assets"]
 }
