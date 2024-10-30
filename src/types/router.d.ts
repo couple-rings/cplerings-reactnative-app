@@ -10,6 +10,8 @@ declare global {
   type RootStackParamList = {
     Intro: undefined;
 
+    Login: undefined;
+
     RootTab: NavigatorScreenParams<RootTabParamList>;
   };
 

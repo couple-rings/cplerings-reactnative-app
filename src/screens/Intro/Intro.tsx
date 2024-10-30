@@ -1,3 +1,4 @@
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { StyleSheet, Text, Image, SafeAreaView, View } from "react-native";
 import Button from "src/components/button/Button";
 import { primaryColor } from "src/util/constants";
@@ -5,6 +6,8 @@ import { ButtonVariant } from "src/util/enums";
 const intro = require("assets/intro.png");
 
 export default function Intro() {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
   return (
     <SafeAreaView style={styles.container}>
       <Image source={intro} style={styles.image} />
@@ -17,6 +20,7 @@ export default function Intro() {
           title="Bắt Đầu"
           style={styles.button}
           variant={ButtonVariant.Contained}
+          options={{ onPress: () => navigation.navigate("Login") }}
         />
       </View>
     </SafeAreaView>

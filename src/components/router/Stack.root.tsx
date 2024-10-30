@@ -2,6 +2,9 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAppSelector } from "src/util/hooks";
 import Intro from "src/screens/Intro/Intro";
 import RootTabRouter from "./Tab.root";
+import Login from "src/screens/Auth/Login";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { primaryColor } from "src/util/constants";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -20,6 +23,26 @@ function RootStackRouter() {
             component={Intro}
             options={{
               headerShown: false,
+            }}
+          />
+
+          <Stack.Screen
+            name="Login"
+            component={Login}
+            options={{
+              headerShown: true,
+              title: "COUPLE RINGS",
+              headerTintColor: primaryColor,
+              headerShadowVisible: false,
+              headerBackVisible: false,
+              headerLeft: () => (
+                <MaterialCommunityIcons
+                  name="ring"
+                  size={24}
+                  color={primaryColor}
+                  style={{ marginRight: 5 }}
+                />
+              ),
             }}
           />
         </>
