@@ -8,6 +8,9 @@ import Toast from "react-native-toast-message";
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "react-native";
 import RootStackRouter from "src/components/router/Stack.root";
+import React from "react";
+import { decode } from "base-64";
+global.atob = decode;
 
 const theme = {
   ...MD3LightTheme, // or MD3DarkTheme

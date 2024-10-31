@@ -14,7 +14,7 @@ import {
 } from "src/util/constants";
 import { TextInput } from "react-native-paper";
 import Button from "src/components/button/Button";
-import { ButtonVariant } from "src/util/enums";
+import { ButtonVariant, ErrorCode, UserRole } from "src/util/enums";
 import {
   Controller,
   SubmitErrorHandler,
@@ -22,6 +22,12 @@ import {
   useForm,
 } from "react-hook-form";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { useMutation } from "@tanstack/react-query";
+import { postLogin } from "src/services/auth.service";
+import Toast from "react-native-toast-message";
+import { useAppDispatch } from "src/util/hooks";
+import { jwtDecode } from "jwt-decode";
+import { login } from "src/redux/slices/auth.slice";
 
 interface Inputs {
   email: string;
@@ -33,12 +39,52 @@ export default function Login() {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const dispatch = useAppDispatch();
 
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<Inputs>();
+
+  const mutation = useMutation({
+    mutationFn: (data: Inputs) => {
+      return postLogin(data);
+    },
+    onSuccess: (response, request) => {
+      if (response.data) {
+        const { refreshToken, token: accessToken } = response.data;
+        const userInfo = jwtDecode<ITokenData>(accessToken);
+        const { id, sub, role } = userInfo;
+
+        if (role !== UserRole.Transporter) {
+          Toast.show({
+            type: "error",
+            text1: "Tài khoản không tồn tại",
+          });
+          return;
+        }
+
+        dispatch(
+          login({ id: +id, role, email: sub, accessToken, refreshToken })
+        );
+      }
+
+      if (response.errors) {
+        response.errors.forEach((err) => {
+          if (err.code === ErrorCode.UnVerifiedAccount) {
+            // const { email } = request;
+            // navigate("/verify-account", { state: { email } });
+            // toast.info("Vui lòng kích hoạt tài khoản");
+          } else
+            Toast.show({
+              type: "error",
+              text1: err.description,
+            });
+        });
+      }
+    },
+  });
 
   const onInvalid: SubmitErrorHandler<Inputs> = (errors) => {
     if (errors.email && errors.email.ref && errors.email.ref.focus)
@@ -48,7 +94,7 @@ export default function Login() {
   };
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    console.log(data);
+    mutation.mutate(data);
   };
 
   useEffect(() => {
@@ -90,6 +136,7 @@ export default function Login() {
           }}
           render={({ field: { value, onChange, ref } }) => (
             <TextInput
+              readOnly={mutation.isPending}
               error={!!errors.email}
               mode="outlined"
               placeholder="Email"
@@ -125,6 +172,7 @@ export default function Login() {
           }}
           render={({ field: { onChange, value, ref } }) => (
             <TextInput
+              readOnly={mutation.isPending}
               error={!!errors.password}
               secureTextEntry={!showPW}
               mode="outlined"
@@ -174,6 +222,7 @@ export default function Login() {
           variant={ButtonVariant.Contained}
           title="Đăng Nhập"
           options={{ onPress: handleSubmit(onSubmit, onInvalid) }}
+          loading={mutation.isPending}
         />
       </View>
     </SafeAreaView>
