@@ -12,6 +12,10 @@ declare global {
 
     Login: undefined;
 
+    ForgetPassword: undefined;
+
+    ResetPassword: { email: string };
+
     RootTab: NavigatorScreenParams<RootTabParamList>;
   };
 
