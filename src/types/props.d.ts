@@ -12,5 +12,6 @@ declare global {
     style?: StyleProp<ViewStyle>;
     options?: TouchableOpacityProps;
     variant: ButtonVariant;
+    loading?: boolean;
   }
 }

@@ -1,20 +1,20 @@
-import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import Toast from "react-native-toast-message";
+import Button from "src/components/button/Button";
+import { logout } from "src/redux/slices/auth.slice";
+import { ButtonVariant } from "src/util/enums";
+import { useAppDispatch } from "src/util/hooks";
 
 const OrderList = () => {
-  useEffect(() => {
-    Toast.show({
-      type: "success",
-      text1: "This is some something 👋",
-    });
-  }, []);
+  const dispatch = useAppDispatch();
 
   return (
     <View style={styles.container}>
       <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <Button
+        title="Đăng Xuất"
+        variant={ButtonVariant.Contained}
+        options={{ onPress: () => dispatch(logout()) }}
+      />
     </View>
   );
 };
