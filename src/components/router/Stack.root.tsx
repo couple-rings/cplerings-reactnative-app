@@ -5,6 +5,8 @@ import RootTabRouter from "./Tab.root";
 import Login from "src/screens/Auth/Login";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { primaryColor } from "src/util/constants";
+import ForgetPassword from "src/screens/Auth/ForgetPassword";
+import ResetPassword from "src/screens/Auth/ResetPassword";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -29,6 +31,46 @@ function RootStackRouter() {
           <Stack.Screen
             name="Login"
             component={Login}
+            options={{
+              headerShown: true,
+              title: "COUPLE RINGS",
+              headerTintColor: primaryColor,
+              headerShadowVisible: false,
+              headerBackVisible: false,
+              headerLeft: () => (
+                <MaterialCommunityIcons
+                  name="ring"
+                  size={24}
+                  color={primaryColor}
+                  style={{ marginRight: 5 }}
+                />
+              ),
+            }}
+          />
+
+          <Stack.Screen
+            name="ForgetPassword"
+            component={ForgetPassword}
+            options={{
+              headerShown: true,
+              title: "COUPLE RINGS",
+              headerTintColor: primaryColor,
+              headerShadowVisible: false,
+              headerBackVisible: false,
+              headerLeft: () => (
+                <MaterialCommunityIcons
+                  name="ring"
+                  size={24}
+                  color={primaryColor}
+                  style={{ marginRight: 5 }}
+                />
+              ),
+            }}
+          />
+
+          <Stack.Screen
+            name="ResetPassword"
+            component={ResetPassword}
             options={{
               headerShown: true,
               title: "COUPLE RINGS",

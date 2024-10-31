@@ -21,6 +21,7 @@ import {
   SubmitHandler,
   useForm,
 } from "react-hook-form";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 interface Inputs {
   email: string;
@@ -30,6 +31,8 @@ interface Inputs {
 export default function Login() {
   const [showPW, setShowPW] = useState(true);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const {
     control,
@@ -156,7 +159,7 @@ export default function Login() {
           <Text style={styles.errorText}>{errors.password.message}</Text>
         )}
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("ForgetPassword")}>
           <Text style={styles.forget}>Quên mật khẩu?</Text>
         </TouchableOpacity>
       </View>
