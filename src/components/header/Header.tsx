@@ -16,7 +16,7 @@ export default function Header(props: IHeaderProps) {
 const styles = StyleSheet.create({
   header: {
     backgroundColor: primaryColor,
-    paddingTop: 50,
+    paddingTop: 40,
     paddingBottom: 20,
     alignItems: "center",
   },

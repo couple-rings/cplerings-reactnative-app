@@ -1,20 +1,87 @@
-import { View, Text, StyleSheet } from "react-native";
-import Button from "src/components/button/Button";
-import { logout } from "src/redux/slices/auth.slice";
-import { ButtonVariant } from "src/util/enums";
-import { useAppDispatch } from "src/util/hooks";
+import { useState } from "react";
+import { View, StyleSheet, FlatList } from "react-native";
+import CurlButton from "src/components/button/CurlButton";
+import Order from "src/components/card/Order";
+import { primaryColor } from "src/util/constants";
+import { ButtonVariant, OrderStatus } from "src/util/enums";
+
+const status = [
+  "All (12)",
+  "Waiting (2)",
+  "On Going (7)",
+  "Fulfilled (2)",
+  "Not Fulfilled (1)",
+];
+
+const orders = [
+  {
+    name: "Nguyễn Văn A",
+    phone: "0123456789",
+    address: "944 TL43, KP2, Tan Thoi, Thu Duc",
+    quantity: 2,
+    status: OrderStatus.OnGoing,
+  },
+  {
+    name: "Nguyễn Văn A",
+    phone: "0123456789",
+    address: "944 TL43, KP2, Tan Thoi, Thu Duc",
+    quantity: 2,
+    status: OrderStatus.OnGoing,
+  },
+  {
+    name: "Nguyễn Văn A",
+    phone: "0123456789",
+    address: "944 TL43, KP2, Tan Thoi, Thu Duc",
+    quantity: 2,
+    status: OrderStatus.OnGoing,
+  },
+  {
+    name: "Nguyễn Văn A",
+    phone: "0123456789",
+    address: "944 TL43, KP2, Tan Thoi, Thu Duc",
+    quantity: 2,
+    status: OrderStatus.OnGoing,
+  },
+];
 
 const OrderList = () => {
-  const dispatch = useAppDispatch();
+  const [selected, setSelected] = useState(status[0]);
 
   return (
     <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <Button
+      <View style={styles.statusBar}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={status}
+          renderItem={({ item }) => (
+            <CurlButton
+              title={item}
+              variant={
+                selected === item
+                  ? ButtonVariant.Contained
+                  : ButtonVariant.Outlined
+              }
+              options={{ onPress: () => setSelected(item) }}
+            />
+          )}
+          contentContainerStyle={styles.content}
+        />
+      </View>
+
+      <FlatList
+        style={{ width: "100%" }}
+        showsVerticalScrollIndicator={false}
+        data={orders}
+        renderItem={({ item }) => <Order {...item} />}
+        contentContainerStyle={{ padding: 16 }}
+      />
+
+      {/* <Button
         title="Đăng Xuất"
         variant={ButtonVariant.Contained}
         options={{ onPress: () => dispatch(logout()) }}
-      />
+      /> */}
     </View>
   );
 };
@@ -24,7 +91,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     alignItems: "center",
-    justifyContent: "center",
+  },
+  statusBar: {
+    width: "100%",
+    backgroundColor: primaryColor,
+    paddingBottom: 20,
+  },
+  content: {
+    paddingHorizontal: 16,
+    gap: 16,
   },
 });
 
