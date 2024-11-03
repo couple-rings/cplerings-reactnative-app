@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { FontAwesome } from "@expo/vector-icons";
 import HomeStackRouter from "./Stack.home";
 import { primaryColor } from "src/util/constants";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -19,7 +19,7 @@ function RootTabRouter() {
         component={HomeStackRouter}
         options={{
           tabBarIcon: ({ color }) => (
-            <FontAwesome name="home" size={30} color={color} />
+            <Ionicons name="newspaper" size={30} color={color} />
           ),
           headerShown: false,
         }}

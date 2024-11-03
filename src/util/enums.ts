@@ -29,3 +29,10 @@ export enum ErrorCode {
   UnVerifiedAccount = "012",
   JwtExpired = "008",
 }
+
+export enum OrderStatus {
+  Waiting = "WAITING",
+  OnGoing = "ON GOING",
+  Fulfilled = "FULFILLED",
+  NotFulfilled = "NOT FULFILLED",
+}
