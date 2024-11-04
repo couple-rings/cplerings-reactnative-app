@@ -25,4 +25,26 @@ declare global {
     address: string;
     quantity: number;
   }
+
+  interface IProductCardProps {
+    name: string;
+    image: string | ImageSourcePropType;
+    size: number;
+    engraving: string;
+    metal: string;
+    diamond: string;
+  }
+
+  interface ICustomerCardProps {
+    name: string;
+    phone: string;
+    address: string;
+  }
+
+  interface IConfirmModalProps {
+    visible: boolean;
+    setVisible: (v: boolean) => void;
+    title: string;
+    message: string;
+  }
 }

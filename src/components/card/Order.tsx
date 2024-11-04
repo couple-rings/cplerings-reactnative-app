@@ -5,24 +5,40 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { secondaryColor } from "src/util/constants";
 
 export default function Order(props: IOrderCardProps) {
   const { address, name, phone, quantity, status } = props;
+
+  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+
   return (
-    <Card style={styles.container}>
+    <Card
+      style={styles.container}
+      onPress={() => navigation.navigate("OrderDetail", { id: 1 })}
+    >
       <View style={styles.header}>
         <Text style={styles.orderId}>#Order ID</Text>
         <Text style={styles.status}>{status}</Text>
       </View>
 
       <View style={styles.row}>
-        <MaterialCommunityIcons name="account" size={20} color="#6F6A6A" />
+        <MaterialCommunityIcons
+          name="account"
+          size={20}
+          color={secondaryColor}
+        />
         <Text style={styles.text}>
           {name} / {phone}
         </Text>
       </View>
       <View style={styles.row}>
-        <FontAwesome6 name="map-location-dot" size={16} color="#6F6A6A" />
+        <FontAwesome6
+          name="map-location-dot"
+          size={16}
+          color={secondaryColor}
+        />
         <Text style={styles.text}>{address}</Text>
       </View>
       <View
@@ -33,12 +49,16 @@ export default function Order(props: IOrderCardProps) {
         }}
       >
         <View style={styles.row}>
-          <MaterialIcons name="sticky-note-2" size={20} color="#6F6A6A" />
+          <MaterialIcons
+            name="sticky-note-2"
+            size={20}
+            color={secondaryColor}
+          />
           <Text style={styles.text}>Shipping in office hours</Text>
         </View>
 
         <TouchableOpacity style={styles.quantity}>
-          <Entypo name="box" size={14} color="#6F6A6A" />
+          <Entypo name="box" size={14} color={secondaryColor} />
           <Text style={styles.text}>{quantity}</Text>
         </TouchableOpacity>
       </View>
@@ -65,7 +85,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   text: {
-    color: "#6F6A6A",
+    color: secondaryColor,
   },
   orderId: {
     fontWeight: "500",
