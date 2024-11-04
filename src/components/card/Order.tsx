@@ -5,11 +5,18 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 export default function Order(props: IOrderCardProps) {
   const { address, name, phone, quantity, status } = props;
+
+  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+
   return (
-    <Card style={styles.container}>
+    <Card
+      style={styles.container}
+      onPress={() => navigation.navigate("OrderDetail", { id: 1 })}
+    >
       <View style={styles.header}>
         <Text style={styles.orderId}>#Order ID</Text>
         <Text style={styles.status}>{status}</Text>
