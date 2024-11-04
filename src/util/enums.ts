@@ -36,3 +36,8 @@ export enum OrderStatus {
   Fulfilled = "FULFILLED",
   NotFulfilled = "NOT FULFILLED",
 }
+
+export enum FailReason {
+  NotMet = "NOT MET",
+  Rejected = "REJECTED",
+}

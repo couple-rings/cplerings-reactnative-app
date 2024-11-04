@@ -40,4 +40,11 @@ declare global {
     phone: string;
     address: string;
   }
+
+  interface IConfirmModalProps {
+    visible: boolean;
+    setVisible: (v: boolean) => void;
+    title: string;
+    message: string;
+  }
 }

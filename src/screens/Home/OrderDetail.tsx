@@ -1,13 +1,25 @@
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { primaryColor, secondaryColor } from "src/util/constants";
 import Product from "src/components/card/Product";
-import { Card, Button as RnpButton } from "react-native-paper";
+import { Card, Button as RnpButton, TextInput } from "react-native-paper";
 // import Button from "src/components/button/Button";
 import Customer from "src/components/card/Customer";
 // import { ButtonVariant } from "src/util/enums";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Entypo from "@expo/vector-icons/Entypo";
+import { Picker } from "@react-native-picker/picker";
+import { FailReason } from "src/util/enums";
+import {
+  Controller,
+  SubmitErrorHandler,
+  SubmitHandler,
+  useForm,
+} from "react-hook-form";
+import ConfirmModal from "src/components/dialog/ConfirmModal";
+
 const menring = require("assets/menring.png");
 
 const products = [
@@ -35,10 +47,42 @@ const customer = {
   address: "944 TL43, KP2, Tan Thoi, Thu Duc",
 };
 
+const successConfirm =
+  "Bạn cần đảm bảo đơn hàng này đã được giao thành công, vì trạng thái đơn không thể thay đổi sau khi xác nhận.";
+
+const failConfirm =
+  "Bạn cần đảm bảo đơn hàng này đã giao thất bại, vì trạng thái đơn không thể thay đổi sau khi xác nhận.";
+
+interface Inputs {
+  note: string;
+}
+
 export default function OrderDetail() {
+  const [selectedReason, setSelectedReason] = useState(FailReason.NotMet);
+
+  const [openConfirmSuccess, setOpenConfirmSuccess] = useState(false);
+  const [openConfirmFail, setOpenConfirmFail] = useState(false);
+
   const { params } = useRoute<RouteProp<HomeStackParamList, "OrderDetail">>();
   const { id } = params;
   console.log(id);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Inputs>();
+
+  const onInvalid: SubmitErrorHandler<Inputs> = (errors) => {
+    if (errors.note && errors.note.ref && errors.note.ref.focus)
+      errors.note.ref.focus();
+  };
+
+  const onSubmit: SubmitHandler<Inputs> = (data) => {
+    console.log(data);
+    console.log(selectedReason);
+    setOpenConfirmFail(true);
+  };
 
   return (
     <ScrollView>
@@ -49,7 +93,11 @@ export default function OrderDetail() {
 
         <View style={styles.body}>
           <View style={{ paddingBottom: 16 }}>
-            <Text style={styles.quantity}>Item (2)</Text>
+            <View style={{ ...styles.head, marginBottom: 8 }}>
+              <Entypo name="box" size={20} color={secondaryColor} />
+              <Text style={styles.title}>Item (2)</Text>
+            </View>
+
             {products.map((item, index) => (
               <Product key={index} {...item} />
             ))}
@@ -57,7 +105,15 @@ export default function OrderDetail() {
 
           <View>
             <View style={styles.customerHead}>
-              <Text style={styles.title}>Thông Tin Khách Hàng</Text>
+              <View style={styles.head}>
+                <MaterialCommunityIcons
+                  name="account"
+                  size={24}
+                  color={secondaryColor}
+                />
+                <Text style={styles.title}>Thông Tin Khách Hàng</Text>
+              </View>
+
               <RnpButton
                 icon="chat"
                 mode="elevated"
@@ -84,22 +140,21 @@ export default function OrderDetail() {
             <RnpButton
               mode="elevated"
               buttonColor="white"
-              textColor="#6F6A6A"
-              style={{ borderRadius: 10, marginVertical: 10 }}
+              textColor={secondaryColor}
+              style={{ borderRadius: 10, marginTop: 10 }}
             >
               Xem bản đồ
             </RnpButton>
 
-            <View style={styles.verifyHead}>
+            <View style={styles.head}>
               <MaterialCommunityIcons
                 name="check-decagram"
                 size={24}
-                color="#6F6A6A"
+                color={secondaryColor}
               />
               <Text style={styles.title}>Xác Nhận Giao Hàng</Text>
             </View>
-
-            <Card style={styles.verifyBody}>
+            <Card style={styles.cardContent}>
               <Text style={styles.guideTitle}>
                 Hình ảnh xác nhận: 1 trong 2 cách sau
               </Text>
@@ -109,9 +164,126 @@ export default function OrderDetail() {
               <Text style={styles.guideItem}>
                 2. Ảnh chụp khách hàng và sản phẩm
               </Text>
+
+              <View style={styles.hr}></View>
+
+              <RnpButton
+                mode="elevated"
+                buttonColor="white"
+                textColor={secondaryColor}
+                icon={"barcode-scan"}
+                style={styles.step}
+              >
+                <Text>Bước 1: Xác nhận CCCD khách hàng</Text>
+              </RnpButton>
+
+              <RnpButton
+                mode="elevated"
+                buttonColor="white"
+                textColor={secondaryColor}
+                icon={"camera"}
+                style={styles.step}
+              >
+                Bước 2: Upload ảnh giao hàng
+              </RnpButton>
+
+              <RnpButton
+                mode="elevated"
+                buttonColor="white"
+                textColor={secondaryColor}
+                icon={"checkbox-marked"}
+                style={styles.step}
+                onPress={() => setOpenConfirmSuccess(true)}
+              >
+                Bước 3: Xác nhận hoàn thành
+              </RnpButton>
+            </Card>
+
+            <View style={styles.head}>
+              <AntDesign name="closesquareo" size={20} color={secondaryColor} />
+              <Text style={styles.title}>Giao Hàng Thất Bại</Text>
+            </View>
+            <Card style={styles.cardContent}>
+              <Text style={{ color: secondaryColor, ...styles.title }}>
+                Chọn Trường Hợp
+              </Text>
+              <Picker
+                style={{ color: secondaryColor }}
+                selectedValue={selectedReason}
+                onValueChange={(itemValue, itemIndex) =>
+                  setSelectedReason(itemValue)
+                }
+              >
+                <Picker.Item
+                  label="Không gặp được khách hàng"
+                  value={FailReason.NotMet}
+                />
+                <Picker.Item
+                  label="Khách hàng từ chối nhận hàng"
+                  value={FailReason.Rejected}
+                />
+              </Picker>
+
+              <Controller
+                name="note"
+                control={control}
+                rules={{
+                  required: "* Vui lòng nhập lý do",
+                }}
+                render={({ field: { value, onChange, ref } }) => (
+                  <TextInput
+                    error={!!errors.note}
+                    placeholder="Nêu cụ thể lý do..."
+                    mode="outlined"
+                    multiline
+                    numberOfLines={5}
+                    style={styles.textInput}
+                    placeholderTextColor={errors.note ? "red" : secondaryColor}
+                    cursorColor={secondaryColor}
+                    textColor={secondaryColor}
+                    outlineColor="#D9D9D9"
+                    theme={{
+                      colors: {
+                        primary: secondaryColor,
+                      },
+                      roundness: 10,
+                    }}
+                    value={value}
+                    onChangeText={onChange}
+                    ref={ref}
+                  />
+                )}
+              />
+              {errors.note && (
+                <Text style={styles.errorText}>{errors.note.message}</Text>
+              )}
+
+              <RnpButton
+                mode="elevated"
+                buttonColor="white"
+                textColor={secondaryColor}
+                style={{ borderRadius: 10, marginVertical: 16 }}
+                onPress={handleSubmit(onSubmit, onInvalid)}
+              >
+                Xác Nhận
+              </RnpButton>
             </Card>
           </View>
         </View>
+
+        <ConfirmModal
+          visible={openConfirmSuccess}
+          setVisible={setOpenConfirmSuccess}
+          title="Giao Hàng Thành Công"
+          message={successConfirm}
+        />
+
+        <ConfirmModal
+          visible={openConfirmFail}
+          setVisible={setOpenConfirmFail}
+          title="Giao Hàng Thất Bại"
+          message={failConfirm}
+        />
       </SafeAreaView>
     </ScrollView>
   );
@@ -131,43 +303,57 @@ const styles = StyleSheet.create({
   },
   body: {
     paddingHorizontal: 16,
-  },
-  quantity: {
-    marginTop: 16,
-    marginBottom: 8,
-    fontWeight: "600",
-    fontSize: 16,
+    paddingBottom: 24,
   },
   customerHead: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
   },
   title: {
     fontSize: 16,
     fontWeight: "500",
   },
-  verifyHead: {
+  head: {
     flexDirection: "row",
     gap: 10,
     alignItems: "center",
-    marginVertical: 12,
+    marginVertical: 24,
   },
-  verifyBody: {
+  cardContent: {
     backgroundColor: "white",
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
   guideTitle: {
     fontWeight: "600",
     fontStyle: "italic",
-    color: "#6F6A6A",
+    color: secondaryColor,
     fontSize: 16,
     marginBottom: 6,
   },
   guideItem: {
     fontSize: 14,
     marginVertical: 4,
-    color: "#6F6A6A",
+    color: secondaryColor,
+  },
+  hr: {
+    borderBottomColor: "black",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    marginVertical: 12,
+  },
+  step: {
+    borderRadius: 10,
+    marginVertical: 8,
+    alignItems: "flex-start",
+  },
+  errorText: {
+    color: "red",
+    marginTop: 8,
+  },
+  textInput: {
+    paddingVertical: 12,
+    marginBottom: 6,
+    backgroundColor: "white",
   },
 });

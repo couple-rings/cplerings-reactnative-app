@@ -1,6 +1,7 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { Card } from "react-native-paper";
+import { secondaryColor } from "src/util/constants";
 
 export default function Product(props: IProductCardProps) {
   const { diamond, engraving, image, metal, name, size } = props;
@@ -60,12 +61,12 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   name: {
-    color: "#6F6A6A",
+    color: secondaryColor,
     fontWeight: "500",
   },
   text: {
     fontSize: 10,
-    color: "#6F6A6A",
+    color: secondaryColor,
     width: "50%",
   },
 });
