@@ -3,6 +3,7 @@ import moment from "moment";
 import OrderList from "src/screens/Home/Index";
 import { primaryColor } from "src/util/constants";
 import Header from "src/components/header/Header";
+import OrderDetail from "src/screens/Home/OrderDetail";
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
@@ -27,6 +28,14 @@ function HomeStackRouter() {
               subtitle={moment().format("MMM Do YYYY")}
             />
           ),
+        }}
+      />
+      <Stack.Screen
+        name="OrderDetail"
+        component={OrderDetail}
+        options={{
+          headerTintColor: "white",
+          title: "Chi Tiết Đơn",
         }}
       />
     </Stack.Navigator>

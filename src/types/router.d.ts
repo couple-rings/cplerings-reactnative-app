@@ -21,5 +21,7 @@ declare global {
 
   type HomeStackParamList = {
     OrderList: undefined;
+
+    OrderDetail: { id: number };
   };
 }
