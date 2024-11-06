@@ -2,7 +2,7 @@ import { Image, StyleSheet, View } from "react-native";
 import React, { useEffect, useState } from "react";
 
 export default function ImageMessage(props: IImageMessageProps) {
-  const { url } = props;
+  const { url, scrollToEnd } = props;
 
   const [ratio, setRatio] = useState(0);
 
@@ -15,6 +15,7 @@ export default function ImageMessage(props: IImageMessageProps) {
   return (
     <View style={{ width: 250 }}>
       <Image
+        onLoadEnd={scrollToEnd}
         source={{ uri: url }}
         style={[styles.image, { width: "100%", aspectRatio: ratio }]}
       />

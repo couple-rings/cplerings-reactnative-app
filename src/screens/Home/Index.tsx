@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
-import Button from "src/components/button/Button";
+// import Button from "src/components/button/Button";
 import CurlButton from "src/components/button/CurlButton";
 import Order from "src/components/card/Order";
-import { logout } from "src/redux/slices/auth.slice";
-import { removeConversations } from "src/redux/slices/conversation.slice";
-import { removeMessages } from "src/redux/slices/message.slice";
+// import { logout } from "src/redux/slices/auth.slice";
+// import { removeConversations } from "src/redux/slices/conversation.slice";
+// import { removeMessages } from "src/redux/slices/message.slice";
 import { primaryColor } from "src/util/constants";
 import { ButtonVariant, OrderStatus } from "src/util/enums";
-import { useAppDispatch } from "src/util/hooks";
+// import { useAppDispatch } from "src/util/hooks";
 
 const status = [
   "All (12)",
@@ -52,7 +52,7 @@ const orders = [
 const OrderList = () => {
   const [selected, setSelected] = useState(status[0]);
 
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
 
   return (
     <View style={styles.container}>
@@ -84,7 +84,7 @@ const OrderList = () => {
         contentContainerStyle={{ padding: 16 }}
       />
 
-      <Button
+      {/* <Button
         title="Đăng Xuất"
         variant={ButtonVariant.Contained}
         options={{
@@ -94,7 +94,7 @@ const OrderList = () => {
             dispatch(logout());
           },
         }}
-      />
+      /> */}
     </View>
   );
 };

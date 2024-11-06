@@ -64,10 +64,14 @@ declare global {
 
   interface ITextMessageProps {
     content: string;
+
+    scrollToEnd?: () => void;
   }
 
   export interface IImageMessageProps {
     url: string | ImageSourcePropType;
+
+    scrollToEnd?: () => void;
   }
 
   interface IAttachmentMessageProps {
@@ -76,5 +80,7 @@ declare global {
     name: string;
 
     size: number | undefined;
+
+    scrollToEnd?: () => void;
   }
 }
