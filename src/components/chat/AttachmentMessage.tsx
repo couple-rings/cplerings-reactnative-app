@@ -3,7 +3,7 @@ import { sizeConverter } from "src/util/functions";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export default function AttachmentMessage(props: IAttachmentMessageProps) {
-  const { name, size, url } = props;
+  const { name, size, url, scrollToEnd } = props;
 
   return (
     <View style={styles.container}>
@@ -13,6 +13,7 @@ export default function AttachmentMessage(props: IAttachmentMessageProps) {
           style={styles.text}
           onPress={() => Linking.openURL(url)}
           numberOfLines={1}
+          onTextLayout={scrollToEnd}
         >
           {name}
         </Text>
