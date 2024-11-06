@@ -41,3 +41,8 @@ export enum FailReason {
   NotMet = "NOT MET",
   Rejected = "REJECTED",
 }
+
+export enum FileType {
+  Image = "image",
+  Attachment = "attachment",
+}

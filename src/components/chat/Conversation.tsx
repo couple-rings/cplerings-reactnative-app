@@ -133,9 +133,11 @@ export default function Conversation(props: IConversationProps) {
           </View>
 
           <View style={styles.bottom}>
-            <Text style={styles.message} numberOfLines={1}>
-              {renderLatestMsg(conversation.latestMessage)}
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.message} numberOfLines={1}>
+                {renderLatestMsg(conversation.latestMessage)}
+              </Text>
+            </View>
 
             {conversation.latestMessage && (
               <Text style={styles.date}>
@@ -174,7 +176,6 @@ const styles = StyleSheet.create({
   },
   message: {
     color: secondaryColor,
-    width: 170,
   },
   mediaMessage: {
     marginLeft: 3,

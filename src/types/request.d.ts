@@ -37,4 +37,36 @@ declare global {
 
     current?: number;
   }
+
+  interface IUploadImageRequest {
+    folderName: string;
+
+    type: FileType;
+
+    base64Image: {
+      data: string;
+
+      size: number;
+
+      name: string;
+
+      mimetype: string;
+    };
+  }
+
+  interface IUploadAttachmentRequest {
+    folderName: string;
+
+    type: FileType;
+
+    base64Attachment: {
+      data: string;
+
+      size: number;
+
+      name: string;
+
+      mimetype: string;
+    };
+  }
 }
