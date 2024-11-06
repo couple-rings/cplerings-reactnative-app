@@ -27,6 +27,28 @@ declare global {
     items: T[];
   }
 
+  interface ISecondaryResponse<T> {
+    statusCode: number;
+
+    message?: string;
+
+    error?: string | string[];
+
+    data?: T | null;
+  }
+
+  interface ISecondaryListResponse<T> {
+    currentPage: number;
+
+    pageSize: number;
+
+    totalPages: number;
+
+    totalItems: number;
+
+    items: T;
+  }
+
   interface ILoginResponse {
     token: string;
     refreshToken: string;

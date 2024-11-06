@@ -47,4 +47,34 @@ declare global {
     title: string;
     message: string;
   }
+
+  interface IConversationProps {
+    conversation: IConversation;
+  }
+
+  interface IPartnerMessageProps {
+    timestamp: string;
+
+    children: React.ReactElement;
+
+    isImage?: boolean;
+  }
+
+  interface IOwnMessageProps extends IPartnerMessageProps {}
+
+  interface ITextMessageProps {
+    content: string;
+  }
+
+  export interface IImageMessageProps {
+    url: string | ImageSourcePropType;
+  }
+
+  interface IAttachmentMessageProps {
+    url: string;
+
+    name: string;
+
+    size: number | undefined;
+  }
 }

@@ -5,6 +5,8 @@ export {};
 declare global {
   type RootTabParamList = {
     HomeStack: NavigatorScreenParams<HomeStackParamList>;
+
+    ChatStack: NavigatorScreenParams<ChatStackParamList>;
   };
 
   type RootStackParamList = {
@@ -23,5 +25,11 @@ declare global {
     OrderList: undefined;
 
     OrderDetail: { id: number };
+  };
+
+  type ChatStackParamList = {
+    ConversationList: undefined;
+
+    Chat: undefined;
   };
 }
