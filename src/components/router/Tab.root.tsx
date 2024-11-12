@@ -7,6 +7,8 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useEffect } from "react";
 import { socket } from "src/config/socket";
 import SettingStackRouter from "./Stack.setting";
+import Map from "src/screens/Map/Map";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -50,6 +52,20 @@ function RootTabRouter() {
             <MaterialCommunityIcons name="chat" size={30} color={color} />
           ),
           headerShown: false,
+        }}
+      />
+
+      <Tab.Screen
+        name="Map"
+        component={Map}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <FontAwesome name="map" size={24} color={color} />
+          ),
+          title: "Bản Đồ",
+          headerStyle: { backgroundColor: primaryColor },
+          headerTitleStyle: { color: "white" },
+          headerTitleAlign: "center",
         }}
       />
 
