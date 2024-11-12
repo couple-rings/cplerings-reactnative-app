@@ -56,15 +56,17 @@ instance.interceptors.response.use(
       }
 
       case 400: {
+        console.log("400", error);
         if (error.response && error.config) {
           const { errors } = error.response.data;
 
           if (errors) {
             for (const err of errors) {
               if (err.code === ErrorCode.JwtExpired) {
-                if (error.config.url === "auth/refresh")
+                if (error.config.url === "auth/refresh") {
+                  console.log("refresh token expired");
                   store.dispatch(logout());
-                else {
+                } else {
                   const refreshToken = store.getState().auth.refreshToken;
                   const response = await postRefreshToken({ refreshToken });
 
@@ -85,7 +87,7 @@ instance.interceptors.response.use(
       }
 
       case 403: {
-        console.log(error);
+        console.log("403", error);
         store.dispatch(logout());
 
         return error.response?.data ? error.response.data : error;

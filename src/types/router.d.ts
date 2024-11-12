@@ -9,6 +9,8 @@ declare global {
     ChatStack: NavigatorScreenParams<ChatStackParamList>;
 
     SettingStack: NavigatorScreenParams<SettingStackParamList>;
+
+    Map: undefined;
   };
 
   type RootStackParamList = {
