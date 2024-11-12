@@ -83,4 +83,8 @@ declare global {
 
     scrollToEnd?: () => void;
   }
+
+  interface IChangePWProps {
+    setPWVerified: (v: boolean) => void;
+  }
 }

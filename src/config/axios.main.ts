@@ -85,6 +85,7 @@ instance.interceptors.response.use(
       }
 
       case 403: {
+        console.log(error);
         store.dispatch(logout());
 
         return error.response?.data ? error.response.data : error;
