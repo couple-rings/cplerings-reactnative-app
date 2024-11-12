@@ -6,6 +6,7 @@ import ChatStackRouter from "./Stack.chat";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useEffect } from "react";
 import { socket } from "src/config/socket";
+import SettingStackRouter from "./Stack.setting";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -47,6 +48,17 @@ function RootTabRouter() {
         options={{
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="chat" size={30} color={color} />
+          ),
+          headerShown: false,
+        }}
+      />
+
+      <Tab.Screen
+        name="SettingStack"
+        component={SettingStackRouter}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="account" size={30} color={color} />
           ),
           headerShown: false,
         }}

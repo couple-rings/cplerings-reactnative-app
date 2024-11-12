@@ -7,6 +7,8 @@ declare global {
     HomeStack: NavigatorScreenParams<HomeStackParamList>;
 
     ChatStack: NavigatorScreenParams<ChatStackParamList>;
+
+    SettingStack: NavigatorScreenParams<SettingStackParamList>;
   };
 
   type RootStackParamList = {
@@ -31,5 +33,15 @@ declare global {
     ConversationList: undefined;
 
     Chat: undefined;
+  };
+
+  type SettingStackParamList = {
+    Setting: undefined;
+
+    Status: undefined;
+
+    Profile: undefined;
+
+    Security: undefined;
   };
 }

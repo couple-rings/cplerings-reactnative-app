@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useAppSelector } from "src/util/hooks";
+import { useAppDispatch, useAppSelector } from "src/util/hooks";
 import Intro from "src/screens/Intro/Intro";
 import RootTabRouter from "./Tab.root";
 import Login from "src/screens/Auth/Login";
@@ -7,11 +7,35 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { primaryColor } from "src/util/constants";
 import ForgetPassword from "src/screens/Auth/ForgetPassword";
 import ResetPassword from "src/screens/Auth/ResetPassword";
+import { getAccountProfile } from "src/services/account.service";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAccountProfile } from "src/util/querykey";
+import { useEffect } from "react";
+import { saveProfile } from "src/redux/slices/auth.slice";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootStackRouter() {
+  const dispatch = useAppDispatch();
+
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+
+  const { data: response } = useQuery({
+    queryKey: [fetchAccountProfile],
+    queryFn: () => {
+      return getAccountProfile();
+    },
+
+    enabled: isAuthenticated,
+  });
+
+  useEffect(() => {
+    if (response && response.data) {
+      dispatch(saveProfile(response.data));
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [response]);
 
   return (
     <Stack.Navigator
