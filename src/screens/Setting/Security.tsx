@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   //   ActivityIndicator,
 } from "react-native";
-import { TextInput } from "react-native-paper";
+import { HelperText, TextInput } from "react-native-paper";
 import {
   passwordPattern,
   primaryColor,
@@ -72,7 +72,7 @@ function Security() {
               name="currentPW"
             />
             {errors.currentPW && (
-              <Text style={styles.errorText}>{errors.currentPW.message}</Text>
+              <HelperText type="error">{errors.currentPW.message}</HelperText>
             )}
           </View>
 
@@ -158,7 +158,7 @@ const ChangePW = (props: IChangePWProps) => {
           name="newPassword"
         />
         {errors.newPassword && (
-          <Text style={styles.errorText}>{errors.newPassword.message}</Text>
+          <HelperText type="error">{errors.newPassword.message}</HelperText>
         )}
       </View>
 
@@ -194,9 +194,9 @@ const ChangePW = (props: IChangePWProps) => {
           name="confirmNewPassword"
         />
         {errors.confirmNewPassword && (
-          <Text style={styles.errorText}>
+          <HelperText type="error">
             {errors.confirmNewPassword.message}
-          </Text>
+          </HelperText>
         )}
       </View>
 
@@ -223,10 +223,6 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: "#FAFAFC",
-  },
-  errorText: {
-    color: "red",
-    marginTop: 6,
   },
   button: {
     paddingVertical: 12,

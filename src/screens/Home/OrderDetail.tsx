@@ -1,9 +1,19 @@
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import React, { useState } from "react";
-import { RouteProp, useRoute } from "@react-navigation/native";
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import { primaryColor, secondaryColor } from "src/util/constants";
 import Product from "src/components/card/Product";
-import { Card, Button as RnpButton, TextInput } from "react-native-paper";
+import {
+  Card,
+  HelperText,
+  Button as RnpButton,
+  TextInput,
+} from "react-native-paper";
 // import Button from "src/components/button/Button";
 import Customer from "src/components/card/Customer";
 // import { ButtonVariant } from "src/util/enums";
@@ -19,6 +29,8 @@ import {
   useForm,
 } from "react-hook-form";
 import ConfirmModal from "src/components/dialog/ConfirmModal";
+import Status from "src/components/card/Status";
+import moment from "moment";
 
 const menring = require("assets/menring.png");
 
@@ -47,6 +59,21 @@ const customer = {
   address: "944 TL43, KP2, Tan Thoi, Thu Duc",
 };
 
+const status = [
+  {
+    time: moment().format("HH:mm MMM Do YYYY"),
+    note: "Update note",
+  },
+  {
+    time: moment().format("HH:mm MMM Do YYYY"),
+    note: "Update note",
+  },
+  {
+    time: moment().format("HH:mm MMM Do YYYY"),
+    note: "Update note",
+  },
+];
+
 const successConfirm =
   "Bạn cần đảm bảo đơn hàng này đã được giao thành công, vì trạng thái đơn không thể thay đổi sau khi xác nhận.";
 
@@ -63,8 +90,11 @@ export default function OrderDetail() {
   const [openConfirmSuccess, setOpenConfirmSuccess] = useState(false);
   const [openConfirmFail, setOpenConfirmFail] = useState(false);
 
+  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+
   const { params } = useRoute<RouteProp<HomeStackParamList, "OrderDetail">>();
   const { id } = params;
+
   console.log(id);
 
   const {
@@ -127,6 +157,42 @@ export default function OrderDetail() {
             </View>
 
             <Customer {...customer} />
+
+            <RnpButton
+              mode="elevated"
+              buttonColor="white"
+              textColor={secondaryColor}
+              style={{ borderRadius: 10, marginVertical: 10 }}
+            >
+              Xem bản đồ
+            </RnpButton>
+          </View>
+
+          <View>
+            <View style={styles.head}>
+              <MaterialCommunityIcons
+                name="note-text"
+                size={24}
+                color={secondaryColor}
+              />
+              <Text style={styles.title}>Thông Tin Cập Nhật</Text>
+            </View>
+
+            {status.map((item, index) => (
+              <Status {...item} key={index} />
+            ))}
+
+            <RnpButton
+              mode="elevated"
+              buttonColor="white"
+              textColor={secondaryColor}
+              style={{ borderRadius: 10, marginBottom: 10 }}
+              onPress={() =>
+                navigation.navigate("UpdateStatus", { orderId: 1 })
+              }
+            >
+              Xem thêm
+            </RnpButton>
           </View>
 
           <View>
@@ -136,15 +202,6 @@ export default function OrderDetail() {
               variant={ButtonVariant.Contained}
               style={{ marginTop: 30, marginBottom: 60 }}
             /> */}
-
-            <RnpButton
-              mode="elevated"
-              buttonColor="white"
-              textColor={secondaryColor}
-              style={{ borderRadius: 10, marginTop: 10 }}
-            >
-              Xem bản đồ
-            </RnpButton>
 
             <View style={styles.head}>
               <MaterialCommunityIcons
@@ -173,6 +230,7 @@ export default function OrderDetail() {
                 textColor={secondaryColor}
                 icon={"barcode-scan"}
                 style={styles.step}
+                onPress={() => navigation.navigate("Scan")}
               >
                 <Text>Bước 1: Xác nhận CCCD khách hàng</Text>
               </RnpButton>
@@ -255,7 +313,7 @@ export default function OrderDetail() {
                 )}
               />
               {errors.note && (
-                <Text style={styles.errorText}>{errors.note.message}</Text>
+                <HelperText type="error">{errors.note.message}</HelperText>
               )}
 
               <RnpButton
@@ -346,10 +404,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginVertical: 8,
     alignItems: "flex-start",
-  },
-  errorText: {
-    color: "red",
-    marginTop: 8,
   },
   textInput: {
     paddingVertical: 12,
