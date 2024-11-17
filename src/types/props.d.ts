@@ -87,4 +87,10 @@ declare global {
   interface IChangePWProps {
     setPWVerified: (v: boolean) => void;
   }
+
+  interface IStatusCardProps {
+    time: string;
+    note: string;
+    pressStatus?: (v: string) => void;
+  }
 }

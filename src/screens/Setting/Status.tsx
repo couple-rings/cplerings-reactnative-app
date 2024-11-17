@@ -14,7 +14,7 @@ import { primaryColor } from "src/util/constants";
 export default function Status() {
   const { type, isConnected } = useNetInfo();
 
-  const clickDetailNetwork = () => {
+  const pressDetailNetwork = () => {
     const message = isConnected
       ? "Không phát hiện vấn đề nào trong 5 phút vừa qua."
       : "Điện thoại của bạn đang ngoại tuyến. \n\n Để khắc phục tình trạng mạng, bạn có thể thử \n \t\t \u25CF Đổi điện thoại sang một mạng WiFi khác \n \t\t \u25CF Thay đổi vị trí vật lý của bạn \n \t\t \u25CF Bật rồi tắt chế độ Máy bay \n \t\t \u25CF Reset lại mạng của bạn. \n \t\t \u25CF Bật VPN";
@@ -30,7 +30,7 @@ export default function Status() {
     );
   };
 
-  const clickAppDetail = () => {
+  const pressAppDetail = () => {
     const message = isConnected
       ? "Ứng dụng hiện đang hoạt động bình thường."
       : "Đã có lỗi xảy ra.";
@@ -71,7 +71,7 @@ export default function Status() {
 
         <TouchableOpacity
           style={styles.detailBtn}
-          onPress={() => clickDetailNetwork()}
+          onPress={() => pressDetailNetwork()}
         >
           <Text style={styles.detailText}>Chi Tiết</Text>
         </TouchableOpacity>
@@ -92,7 +92,7 @@ export default function Status() {
 
         <TouchableOpacity
           style={styles.detailBtn}
-          onPress={() => clickAppDetail()}
+          onPress={() => pressAppDetail()}
         >
           <Text style={styles.detailText}>Chi Tiết</Text>
         </TouchableOpacity>

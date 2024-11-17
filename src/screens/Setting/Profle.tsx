@@ -10,7 +10,7 @@ import {
   //   ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { TextInput } from "react-native-paper";
+import { HelperText, TextInput } from "react-native-paper";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useAppSelector } from "src/util/hooks";
 import { primaryColor, secondaryColor } from "src/util/constants";
@@ -142,7 +142,7 @@ function Profile() {
               name="username"
             />
             {errors.username && (
-              <Text style={styles.errorText}>{errors.username.message}</Text>
+              <HelperText type="error">{errors.username.message}</HelperText>
             )}
           </View>
 
@@ -171,7 +171,7 @@ function Profile() {
               name="phone"
             />
             {errors.phone && (
-              <Text style={styles.errorText}>{errors.phone.message}</Text>
+              <HelperText type="error">{errors.phone.message}</HelperText>
             )}
           </View>
 
@@ -256,10 +256,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "white",
     fontSize: 18,
-  },
-  errorText: {
-    color: "red",
-    marginTop: 6,
   },
 });
 

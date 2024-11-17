@@ -29,6 +29,10 @@ declare global {
     OrderList: undefined;
 
     OrderDetail: { id: number };
+
+    Scan: undefined;
+
+    UpdateStatus: { orderId: number };
   };
 
   type ChatStackParamList = {

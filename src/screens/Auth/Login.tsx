@@ -12,7 +12,7 @@ import {
   passwordPattern,
   primaryColor,
 } from "src/util/constants";
-import { TextInput } from "react-native-paper";
+import { HelperText, TextInput } from "react-native-paper";
 import Button from "src/components/button/Button";
 import { ButtonVariant, ErrorCode, UserRole } from "src/util/enums";
 import {
@@ -157,7 +157,7 @@ export default function Login() {
           )}
         />
         {errors.email && (
-          <Text style={styles.errorText}>{errors.email.message}</Text>
+          <HelperText type="error">{errors.email.message}</HelperText>
         )}
 
         <Controller
@@ -204,7 +204,7 @@ export default function Login() {
           )}
         />
         {errors.password && (
-          <Text style={styles.errorText}>{errors.password.message}</Text>
+          <HelperText type="error">{errors.password.message}</HelperText>
         )}
 
         <TouchableOpacity onPress={() => navigation.navigate("ForgetPassword")}>
@@ -255,9 +255,5 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: "100%",
     flex: 1.5,
-  },
-  errorText: {
-    color: "red",
-    marginTop: 8,
   },
 });

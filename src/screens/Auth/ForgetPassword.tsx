@@ -13,7 +13,7 @@ import {
   SubmitHandler,
   useForm,
 } from "react-hook-form";
-import { TextInput } from "react-native-paper";
+import { HelperText, TextInput } from "react-native-paper";
 import Button from "src/components/button/Button";
 import { ButtonVariant } from "src/util/enums";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
@@ -80,7 +80,7 @@ export default function ForgetPassword() {
           )}
         />
         {errors.email && (
-          <Text style={styles.errorText}>{errors.email.message}</Text>
+          <HelperText type="error">{errors.email.message}</HelperText>
         )}
       </View>
 
@@ -117,10 +117,6 @@ const styles = StyleSheet.create({
     flex: 1.5,
     width: "100%",
     justifyContent: "center",
-  },
-  errorText: {
-    color: "red",
-    marginTop: 8,
   },
   buttonContainer: {
     width: "100%",

@@ -8,7 +8,7 @@ import {
   SubmitHandler,
   useForm,
 } from "react-hook-form";
-import { TextInput } from "react-native-paper";
+import { HelperText, TextInput } from "react-native-paper";
 import Button from "src/components/button/Button";
 import { ButtonVariant } from "src/util/enums";
 import { useKeyboardDetect } from "src/util/hooks";
@@ -109,7 +109,7 @@ export default function ResetPassword() {
           )}
         />
         {errors.newPassword && (
-          <Text style={styles.errorText}>{errors.newPassword.message}</Text>
+          <HelperText type="error">{errors.newPassword.message}</HelperText>
         )}
 
         <Controller
@@ -159,7 +159,7 @@ export default function ResetPassword() {
           )}
         />
         {errors.cfnPassword && (
-          <Text style={styles.errorText}>{errors.cfnPassword.message}</Text>
+          <HelperText type="error">{errors.cfnPassword.message}</HelperText>
         )}
 
         <Controller
@@ -193,7 +193,7 @@ export default function ResetPassword() {
           )}
         />
         {errors.otp && (
-          <Text style={styles.errorText}>{errors.otp.message}</Text>
+          <HelperText type="error">{errors.otp.message}</HelperText>
         )}
       </View>
 
@@ -228,10 +228,6 @@ const styles = StyleSheet.create({
   form: {
     width: "100%",
     justifyContent: "flex-start",
-  },
-  errorText: {
-    color: "red",
-    marginTop: 8,
   },
   buttonContainer: {
     width: "100%",
