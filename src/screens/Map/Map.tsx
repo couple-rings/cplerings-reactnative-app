@@ -5,11 +5,11 @@ import * as Location from "expo-location";
 import Toast from "react-native-toast-message";
 import { socket } from "src/config/socket";
 import { primaryColor } from "src/util/constants";
+import MapViewDirections from "react-native-maps-directions";
 
 export default function Map() {
   const [myLocation, setMyLocation] =
     useState<Location.LocationObjectCoords | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [destination, setDestination] = useState({
     latitude: 10.731730508658583,
     longitude: 106.69069542954965,
@@ -34,6 +34,22 @@ export default function Map() {
 
       const location = await Location.getCurrentPositionAsync({});
       setMyLocation(location.coords);
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const coordinates = await Location.geocodeAsync(
+        "36/31 Nguyễn Gia Trí, Phường 25, Bình Thạnh, Hồ Chí Minh"
+      );
+      if (coordinates && coordinates.length > 0) {
+        console.log(coordinates);
+
+        setDestination({
+          latitude: coordinates[0].latitude,
+          longitude: coordinates[0].longitude,
+        });
+      }
     })();
   }, []);
 
@@ -75,7 +91,20 @@ export default function Map() {
           showsUserLocation
           showsCompass
         >
-          <Marker coordinate={destination} title="Destination" />
+          <Marker coordinate={destination} title="Điểm đến" />
+
+          {myLocation !== null && (
+            <MapViewDirections
+              origin={{
+                latitude: myLocation.latitude,
+                longitude: myLocation.longitude,
+              }}
+              destination={destination}
+              apikey={process.env.GOOGLE_MAP_DIRECTION_API_KEY as string}
+              strokeWidth={2}
+              strokeColor="red"
+            />
+          )}
         </MapView>
       ) : (
         <ActivityIndicator size={"large"} color={primaryColor} />
