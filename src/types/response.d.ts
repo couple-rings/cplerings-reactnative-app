@@ -49,6 +49,22 @@ declare global {
     items: T;
   }
 
+  interface IFptResponse<T> {
+    errorCode: number;
+
+    data: T;
+
+    errorMessage: string;
+  }
+
+  interface IIdReadingResponse {
+    id: string;
+
+    name: string;
+
+    dob: string;
+  }
+
   interface ILoginResponse {
     token: string;
     refreshToken: string;
@@ -65,15 +81,7 @@ declare global {
   }
 
   interface IProfileResponse {
-    id: number;
-
-    email: string;
-
-    username: string;
-
-    phone: string | null;
-
-    avatar: string | null;
+    account: IUser;
 
     hasSpouse: boolean;
   }

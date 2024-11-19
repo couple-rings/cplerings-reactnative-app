@@ -69,4 +69,20 @@ declare global {
       mimetype: string;
     };
   }
+
+  interface IFileRequest {
+    uri: string;
+
+    name: string;
+
+    type: string;
+  }
+
+  interface ITransportOrderFilter {
+    page: number;
+    pageSize: number;
+    transporterId?: number;
+    branchId?: number;
+    // need status and branch id
+  }
 }

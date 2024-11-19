@@ -1,8 +1,27 @@
-import { UserRole } from "src/util/enums";
+import {
+  CustomOrderStatus,
+  DesignCharacteristic,
+  GoldColor,
+  RingStatus,
+  TransportOrderStatus,
+  UserRole,
+  VersionOwner,
+} from "src/util/enums";
 
 export {};
 
 declare global {
+  interface IBranch {
+    id: number;
+    address: string;
+    storeName: string;
+    phone: string;
+    coverImage?: {
+      id: number;
+      url: string;
+    };
+  }
+
   interface IUser {
     id: number;
 
@@ -10,13 +29,13 @@ declare global {
 
     username: string;
 
-    phone: string;
+    phone: string | null;
 
-    avatar: string;
-
-    hasSpouse: boolean;
+    avatar: string | null;
 
     role: UserRole;
+
+    branch: IBranch | null;
   }
 
   interface IFile {
@@ -57,5 +76,173 @@ declare global {
     latestMessage?: IMessage;
 
     notifiedUsers?: number[];
+  }
+
+  interface IMetalSpec {
+    id: number;
+
+    name: string;
+
+    pricePerUnit: number;
+
+    color: GoldColor;
+  }
+
+  interface IDiamondSpec {
+    id: number;
+
+    name: string;
+
+    weight: number;
+
+    color: string;
+
+    clarity: string;
+
+    shape: string;
+
+    price: number;
+  }
+
+  interface ICollection {
+    id: number;
+
+    name: string;
+
+    description: string;
+  }
+
+  interface IDesign {
+    id: number;
+
+    metalWeight: number;
+
+    name: string;
+
+    description: string;
+
+    blueprint: {
+      url: string;
+    };
+
+    characteristic: DesignCharacteristic;
+
+    size: number;
+
+    sideDiamondsCount: number;
+
+    designMetalSpecifications: {
+      id: number;
+
+      metalSpecification: IMetalSpec;
+
+      image: {
+        url: string;
+      };
+    }[];
+
+    designDiamondSpecifications: {
+      id: number;
+
+      diamondSpecification: IDiamondSpec;
+    }[];
+
+    designCollection: ICollection;
+  }
+
+  interface IDesignVersion {
+    id: number;
+    customer: Omit<IUser, "hasSpouse">;
+    design: IDesign;
+    image: {
+      url: string;
+    };
+    designFile: {
+      id: number;
+      url: string;
+    };
+    versionNumber: 0;
+    isAccepted: boolean;
+    isOld: boolean;
+    owner?: VersionOwner;
+  }
+
+  interface ICustomDesign {
+    id: number;
+    designVersion: IDesignVersion;
+    spouse: ISpouse;
+    account: Omit<IUser, "hasSpouse">;
+    metalWeight: number;
+    blueprint: {
+      id: number;
+      url: string;
+    };
+    diamondSpecifications: IDiamondSpec[];
+    metalSpecifications: IMetalSpec[];
+    sideDiamondsCount: number;
+  }
+
+  interface ISpouse {
+    id: number;
+    customerId?: number;
+  }
+
+  interface IRing {
+    id: number;
+    purchaseDate: string;
+    status: RingStatus;
+    maintenanceExpiredDate: string;
+    maintenanceDocument?: {
+      id: number;
+      url: string;
+      createdAt: string;
+    };
+    spouse: ISpouse;
+    customDesign: ICustomDesign;
+    //needs engraving, finger size, metal spec, diamond
+  }
+
+  interface IContract {
+    id: number;
+    signature?: {
+      id: number;
+      url: string;
+      createdAt: string;
+    };
+    signedDate?: string;
+    document?: {
+      id: number;
+      url: string;
+    };
+    createdAt: string;
+  }
+
+  interface ICustomOrder {
+    id: number;
+    firstRing: IRing;
+    secondRing: IRing;
+    customer: IUser;
+    jeweler?: IUser;
+    contract: IContract;
+    totalPrice: {
+      amount: number;
+    };
+    status: CustomOrderStatus;
+    createdAt: string;
+  }
+
+  interface ITransportOrder {
+    id: number;
+    status: TransportOrderStatus;
+    receiverName: string;
+    receiverPhone: string;
+    deliveryAddress: string;
+    customOrder: ICustomOrder;
+    transporter: IUser;
+    transportationNotes: {
+      id: number;
+      date: string;
+      note: string;
+    }[];
   }
 }

@@ -46,3 +46,47 @@ export enum FileType {
   Image = "image",
   Attachment = "attachment",
 }
+
+export enum TransportOrderStatus {
+  Pending = "PENDING",
+  Waiting = "WAITING",
+  OnGoing = "ON_GOING",
+  Delivering = "DELIVERING",
+  Rejected = "REJECTED",
+  Completed = "COMPLETED",
+  Failed = "FAILED",
+}
+
+export enum CustomOrderStatus {
+  Pending = "PENDING",
+  Waiting = "WAITING",
+  InProgress = "IN_PROGRESS",
+  Done = "DONE",
+  Delivering = "DELIVERING",
+  Completed = "COMPLETED",
+  Canceled = "CANCELED",
+}
+
+export enum RingStatus {
+  NotAvailable = "NOT_AVAIL",
+  Available = "AVAILABLE",
+  Refunded = "REFUNDED",
+  Resold = "RESOLD",
+}
+
+export enum VersionOwner {
+  Self = "SELF",
+  Partner = "PARTNER",
+}
+
+export enum DesignCharacteristic {
+  Default = "",
+  Male = "MASCULINE",
+  Female = "FEMININE",
+}
+
+export enum GoldColor {
+  White = "WHITE",
+  Rose = "ROSE",
+  Yellow = "YELLOW",
+}
