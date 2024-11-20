@@ -19,11 +19,7 @@ declare global {
   interface ICurlButtonProps extends Omit<IButtonProps, "loading"> {}
 
   interface IOrderCardProps {
-    status: OrderStatus;
-    name: string;
-    phone: string;
-    address: string;
-    quantity: number;
+    data: ITransportOrder;
   }
 
   interface IProductCardProps {

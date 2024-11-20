@@ -9,14 +9,23 @@ import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { secondaryColor } from "src/util/constants";
 
 export default function Order(props: IOrderCardProps) {
-  const { address, name, phone, quantity, status } = props;
+  const { data } = props;
+
+  const {
+    receiverName,
+    receiverPhone,
+    deliveryAddress,
+    status,
+    customOrder,
+    id,
+  } = data;
 
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
 
   return (
     <Card
       style={styles.container}
-      onPress={() => navigation.navigate("OrderDetail", { id: 1 })}
+      onPress={() => navigation.navigate("OrderDetail", { id })}
     >
       <View style={styles.header}>
         <Text style={styles.orderId}>#Order ID</Text>
@@ -30,7 +39,7 @@ export default function Order(props: IOrderCardProps) {
           color={secondaryColor}
         />
         <Text style={styles.text}>
-          {name} / {phone}
+          {receiverName} / {receiverPhone}
         </Text>
       </View>
       <View style={styles.row}>
@@ -39,7 +48,7 @@ export default function Order(props: IOrderCardProps) {
           size={16}
           color={secondaryColor}
         />
-        <Text style={styles.text}>{address}</Text>
+        <Text style={styles.text}>{deliveryAddress}</Text>
       </View>
       <View
         style={{
@@ -59,7 +68,7 @@ export default function Order(props: IOrderCardProps) {
 
         <TouchableOpacity style={styles.quantity}>
           <Entypo name="box" size={14} color={secondaryColor} />
-          <Text style={styles.text}>{quantity}</Text>
+          <Text style={styles.text}>{customOrder ? 2 : 0}</Text>
         </TouchableOpacity>
       </View>
     </Card>

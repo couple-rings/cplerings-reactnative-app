@@ -237,7 +237,7 @@ declare global {
     receiverName: string;
     receiverPhone: string;
     deliveryAddress: string;
-    customOrder: ICustomOrder;
+    customOrder?: ICustomOrder;
     transporter: IUser;
     transportationNotes: {
       id: number;

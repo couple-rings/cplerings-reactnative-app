@@ -28,6 +28,10 @@ declare global {
     userId: number;
   }
 
+  interface ICreateConversationRequest {
+    participants: number[];
+  }
+
   interface IUpdateMessageRequest {
     read: boolean;
   }

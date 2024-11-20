@@ -14,3 +14,5 @@ export const attachmentMimeType = [
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
+
+export const pageSize = 4;

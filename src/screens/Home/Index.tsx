@@ -1,51 +1,123 @@
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import _ from "lodash";
+import { useEffect, useState } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
+import { ActivityIndicator, Text } from "react-native-paper";
 import CurlButton from "src/components/button/CurlButton";
 import Order from "src/components/card/Order";
-import { primaryColor } from "src/util/constants";
-import { ButtonVariant, OrderStatus } from "src/util/enums";
+import { getTransportOrders } from "src/services/transportOrder.service";
+import { pageSize, primaryColor } from "src/util/constants";
+import { ButtonVariant, TransportOrderStatus } from "src/util/enums";
+import { useAppSelector } from "src/util/hooks";
+import { fetchTransportOrders } from "src/util/querykey";
 
-const status = [
-  "All (12)",
-  "Waiting (2)",
-  "On Going (7)",
-  "Fulfilled (2)",
-  "Not Fulfilled (1)",
+const initOption = [
+  {
+    title: "All",
+    quantity: 0,
+  },
+  {
+    title: TransportOrderStatus.Waiting,
+    quantity: 0,
+  },
+  {
+    title: TransportOrderStatus.OnGoing,
+    quantity: 0,
+  },
+  {
+    title: TransportOrderStatus.Delivering,
+    quantity: 0,
+  },
+  {
+    title: TransportOrderStatus.Completed,
+    quantity: 0,
+  },
+  {
+    title: TransportOrderStatus.Rejected,
+    quantity: 0,
+  },
 ];
 
-const orders = [
-  {
-    name: "Nguyễn Văn A",
-    phone: "0123456789",
-    address: "944 TL43, KP2, Tan Thoi, Thu Duc",
-    quantity: 2,
-    status: OrderStatus.OnGoing,
-  },
-  {
-    name: "Nguyễn Văn A",
-    phone: "0123456789",
-    address: "944 TL43, KP2, Tan Thoi, Thu Duc",
-    quantity: 2,
-    status: OrderStatus.OnGoing,
-  },
-  {
-    name: "Nguyễn Văn A",
-    phone: "0123456789",
-    address: "944 TL43, KP2, Tan Thoi, Thu Duc",
-    quantity: 2,
-    status: OrderStatus.OnGoing,
-  },
-  {
-    name: "Nguyễn Văn A",
-    phone: "0123456789",
-    address: "944 TL43, KP2, Tan Thoi, Thu Duc",
-    quantity: 2,
-    status: OrderStatus.OnGoing,
-  },
-];
+const initMetaData = {
+  page: 0,
+  pageSize,
+  totalPages: 0,
+  count: 0,
+};
 
 const OrderList = () => {
-  const [selected, setSelected] = useState(status[0]);
+  const [metaData, setMetaData] = useState<IListMetaData>(initMetaData);
+  const [filterObj, setFilterObj] = useState<ITransportOrderFilter | null>(
+    null
+  );
+  const [options, setOptions] = useState(initOption);
+  const [orderList, setOrderList] = useState<ITransportOrder[]>([]);
+  const [selected, setSelected] = useState(initOption[0]);
+
+  const queryClient = useQueryClient();
+
+  const { branchId, id: userId } = useAppSelector(
+    (state) => state.auth.userInfo
+  );
+
+  const { data: response, isLoading } = useQuery({
+    queryKey: [fetchTransportOrders, filterObj],
+
+    queryFn: () => {
+      if (filterObj) return getTransportOrders(filterObj);
+    },
+    enabled: !!filterObj,
+  });
+
+  const handleLoadMore = () => {
+    if (filterObj)
+      setFilterObj({
+        ...filterObj,
+        page: metaData.page + 1,
+      });
+  };
+
+  useEffect(() => {
+    if (response && response.data) {
+      const { items, ...rest } = response.data;
+
+      if (items.length !== 0) {
+        if (rest.page === 0) setOrderList(items);
+        else setOrderList((current) => [...current, ...items]);
+
+        const clone = _.cloneDeep(options);
+        items.forEach((item) => {
+          clone.forEach((option) => {
+            if (item.status === option.title) option.quantity += 1;
+          });
+        });
+        clone[0].quantity += items.length;
+
+        setOptions(clone);
+        setMetaData(rest);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [response]);
+
+  useEffect(() => {
+    if (branchId !== 0) {
+      setFilterObj({
+        page: 0,
+        pageSize,
+        branchId,
+        transporterId: userId,
+      });
+    }
+  }, [branchId, userId]);
+
+  useEffect(() => {
+    queryClient.invalidateQueries({
+      queryKey: [fetchTransportOrders, filterObj],
+    });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterObj]);
 
   return (
     <View style={styles.container}>
@@ -53,10 +125,10 @@ const OrderList = () => {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={status}
+          data={options}
           renderItem={({ item }) => (
             <CurlButton
-              title={item}
+              title={`${item.title} (${item.quantity})`}
               variant={
                 selected === item
                   ? ButtonVariant.Contained
@@ -69,13 +141,25 @@ const OrderList = () => {
         />
       </View>
 
-      <FlatList
-        style={{ width: "100%" }}
-        showsVerticalScrollIndicator={false}
-        data={orders}
-        renderItem={({ item }) => <Order {...item} />}
-        contentContainerStyle={{ padding: 16 }}
-      />
+      {isLoading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator color={primaryColor} />
+        </View>
+      ) : (
+        <FlatList
+          onEndReached={handleLoadMore}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.empty}>Hiện không có đơn nào</Text>
+            </View>
+          }
+          style={{ width: "100%" }}
+          showsVerticalScrollIndicator={false}
+          data={orderList}
+          renderItem={({ item }) => <Order data={item} />}
+          contentContainerStyle={{ padding: 16 }}
+        />
+      )}
     </View>
   );
 };
@@ -94,6 +178,16 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     gap: 16,
+  },
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  emptyContainer: {
+    marginTop: 36,
+  },
+  empty: {
+    textAlign: "center",
   },
 });
 
