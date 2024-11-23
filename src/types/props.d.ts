@@ -1,4 +1,5 @@
 import { StyleProp, TouchableOpacityProps, ViewStyle } from "react-native";
+import { ProductType } from "src/util/enums";
 
 export {};
 
@@ -23,12 +24,8 @@ declare global {
   }
 
   interface IProductCardProps {
-    name: string;
-    image: string | ImageSourcePropType;
-    size: number;
-    engraving: string;
-    metal: string;
-    diamond: string;
+    productType: ProductType;
+    data: IRing;
   }
 
   interface ICustomerCardProps {
@@ -85,7 +82,8 @@ declare global {
   }
 
   interface IStatusCardProps {
-    time: string;
+    id: number;
+    date: string;
     note: string;
     pressStatus?: (v: string) => void;
   }

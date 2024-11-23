@@ -6,6 +6,8 @@ import Toast from "react-native-toast-message";
 import { socket } from "src/config/socket";
 import { primaryColor } from "src/util/constants";
 import MapViewDirections from "react-native-maps-directions";
+import { useAppSelector } from "src/util/hooks";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 export default function Map() {
   const [myLocation, setMyLocation] =
@@ -15,11 +17,29 @@ export default function Map() {
     longitude: 106.69069542954965,
   });
 
+  const navigation = useNavigation<NavigationProp<RootTabParamList>>();
+
+  // MyFlag
+  const { currentOrder } = useAppSelector((state) => state.order);
+
+  // MyFlag
   useEffect(() => {
-    socket.emit("join_room_location", 1, (response: string) =>
+    if (!currentOrder) {
+      navigation.navigate("HomeStack", { screen: "OrderList" });
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentOrder]);
+
+  // MyFlag
+  useEffect(() => {
+    let id = 0;
+    if (currentOrder?.customOrder) id = currentOrder.customOrder.id;
+
+    socket.emit("join_room_location", id, (response: string) =>
       console.log(response)
     );
-  }, []);
+  }, [currentOrder]);
 
   useEffect(() => {
     (async () => {
@@ -37,22 +57,26 @@ export default function Map() {
     })();
   }, []);
 
+  // MyFlag
   useEffect(() => {
     (async () => {
-      const coordinates = await Location.geocodeAsync(
-        "36/31 Nguyễn Gia Trí, Phường 25, Bình Thạnh, Hồ Chí Minh"
-      );
-      if (coordinates && coordinates.length > 0) {
-        console.log(coordinates);
+      if (currentOrder) {
+        const coordinates = await Location.geocodeAsync(
+          currentOrder.deliveryAddress
+        );
+        if (coordinates && coordinates.length > 0) {
+          console.log(coordinates);
 
-        setDestination({
-          latitude: coordinates[0].latitude,
-          longitude: coordinates[0].longitude,
-        });
+          setDestination({
+            latitude: coordinates[0].latitude,
+            longitude: coordinates[0].longitude,
+          });
+        }
       }
     })();
-  }, []);
+  }, [currentOrder]);
 
+  // MyFlag
   useEffect(() => {
     const sub = Location.watchPositionAsync(
       { accuracy: Location.Accuracy.BestForNavigation },
@@ -62,7 +86,7 @@ export default function Map() {
         socket.emit("location_update", {
           latitude,
           longitude,
-          orderId: 1,
+          orderId: currentOrder?.id,
         });
       }
     );
@@ -72,7 +96,7 @@ export default function Map() {
         .then((subscription) => subscription.remove())
         .catch((err) => console.log(err));
     };
-  }, []);
+  }, [currentOrder]);
 
   return (
     <SafeAreaView style={styles.container}>

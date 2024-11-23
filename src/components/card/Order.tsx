@@ -7,6 +7,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { secondaryColor } from "src/util/constants";
+import { formatStatus } from "src/util/functions";
 
 export default function Order(props: IOrderCardProps) {
   const { data } = props;
@@ -17,6 +18,7 @@ export default function Order(props: IOrderCardProps) {
     deliveryAddress,
     status,
     customOrder,
+    orderNo,
     id,
   } = data;
 
@@ -25,11 +27,12 @@ export default function Order(props: IOrderCardProps) {
   return (
     <Card
       style={styles.container}
-      onPress={() => navigation.navigate("OrderDetail", { id })}
+      // MyFlag
+      onPress={() => navigation.navigate("OrderDetail", { id, order: data })}
     >
       <View style={styles.header}>
-        <Text style={styles.orderId}>#Order ID</Text>
-        <Text style={styles.status}>{status}</Text>
+        <Text style={styles.orderId}>#{orderNo}</Text>
+        <Text style={styles.status}>{formatStatus(status)}</Text>
       </View>
 
       <View style={styles.row}>
@@ -48,7 +51,9 @@ export default function Order(props: IOrderCardProps) {
           size={16}
           color={secondaryColor}
         />
-        <Text style={styles.text}>{deliveryAddress}</Text>
+        <Text style={{ ...styles.text, flex: 1 }} numberOfLines={1}>
+          {deliveryAddress}
+        </Text>
       </View>
       <View
         style={{

@@ -8,6 +8,7 @@ import Order from "src/components/card/Order";
 import { getTransportOrders } from "src/services/transportOrder.service";
 import { pageSize, primaryColor } from "src/util/constants";
 import { ButtonVariant, TransportOrderStatus } from "src/util/enums";
+import { formatStatus } from "src/util/functions";
 import { useAppSelector } from "src/util/hooks";
 import { fetchTransportOrders } from "src/util/querykey";
 
@@ -70,7 +71,11 @@ const OrderList = () => {
   });
 
   const handleLoadMore = () => {
-    if (filterObj)
+    if (
+      filterObj &&
+      metaData.page !== metaData.totalPages - 1 &&
+      metaData.totalPages > 1
+    )
       setFilterObj({
         ...filterObj,
         page: metaData.page + 1,
@@ -85,20 +90,28 @@ const OrderList = () => {
         if (rest.page === 0) setOrderList(items);
         else setOrderList((current) => [...current, ...items]);
 
-        const clone = _.cloneDeep(options);
-        items.forEach((item) => {
-          clone.forEach((option) => {
-            if (item.status === option.title) option.quantity += 1;
-          });
-        });
-        clone[0].quantity += items.length;
-
-        setOptions(clone);
         setMetaData(rest);
       }
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
+
+  useEffect(() => {
+    const clone = _.cloneDeep(initOption);
+
+    orderList.forEach((item) => {
+      clone.forEach((option) => {
+        if (item.status === option.title) option.quantity += 1;
+      });
+    });
+
+    clone[0].quantity = orderList.length;
+
+    setOptions(clone);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderList]);
 
   useEffect(() => {
     if (branchId !== 0) {
@@ -128,7 +141,7 @@ const OrderList = () => {
           data={options}
           renderItem={({ item }) => (
             <CurlButton
-              title={`${item.title} (${item.quantity})`}
+              title={`${formatStatus(item.title)} (${item.quantity})`}
               variant={
                 selected === item
                   ? ButtonVariant.Contained

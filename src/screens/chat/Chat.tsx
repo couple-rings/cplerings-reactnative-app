@@ -39,6 +39,7 @@ import {
 } from "src/services/file.service";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
+import { fetchConversations } from "src/util/querykey";
 
 export default function Chat() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -123,7 +124,7 @@ export default function Chat() {
     socket.emit("send_message", message, async (response: any) => {
       if (response) {
         queryClient.invalidateQueries({
-          queryKey: ["fetchConversations", userId],
+          queryKey: [fetchConversations, userId],
         });
       }
     });

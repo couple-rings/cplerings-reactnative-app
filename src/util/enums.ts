@@ -90,3 +90,15 @@ export enum GoldColor {
   Rose = "ROSE",
   Yellow = "YELLOW",
 }
+
+export enum ProductType {
+  WeddingRing = "WEDDING_RING",
+  Jewelry = "JEWELRY",
+}
+
+export enum IdReadingResponseCode {
+  Success = 0,
+  InvalidParams = 1,
+  InvalidFileFormat = 7,
+  InvalidImage = 3,
+}

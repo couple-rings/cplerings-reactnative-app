@@ -17,6 +17,7 @@ import {
 import { primaryColor } from "src/util/constants";
 import { socket } from "src/config/socket";
 import { saveNotifications } from "src/redux/slices/conversation.slice";
+import { fetchConversations } from "src/util/querykey";
 
 export default function ConversationList() {
   const [firstRender, setFirstRender] = useState(true);
@@ -30,7 +31,7 @@ export default function ConversationList() {
   );
 
   const { data: response, isLoading } = useQuery({
-    queryKey: ["fetchConversations", userId],
+    queryKey: [fetchConversations, userId],
     queryFn: () => {
       return getConversations({ userId });
     },
@@ -84,7 +85,7 @@ export default function ConversationList() {
       }
 
       queryClient.invalidateQueries({
-        queryKey: ["fetchConversations", userId],
+        queryKey: [fetchConversations, userId],
       });
     };
     socket.on("receive_message", listener);

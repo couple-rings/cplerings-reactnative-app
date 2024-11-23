@@ -1,11 +1,63 @@
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { StyleSheet, View } from "react-native";
 import { Button, Dialog, Modal, Portal, Text } from "react-native-paper";
+import Toast from "react-native-toast-message";
+import { removeOrder } from "src/redux/slices/order.slice";
+import { putUpdateOrderStatus } from "src/services/transportOrder.service";
 import { primaryColor, secondaryColor } from "src/util/constants";
+import { TransportOrderStatus } from "src/util/enums";
+import { useAppDispatch, useAppSelector } from "src/util/hooks";
+import { fetchTransportOrders } from "src/util/querykey";
 
 export default function ConfirmModal(props: IConfirmModalProps) {
   const { message, title, setVisible, visible } = props;
 
+  const navigation = useNavigation<NavigationProp<RootTabParamList>>();
+  const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
+
+  const { currentOrder } = useAppSelector((state) => state.order);
+
+  const completeMutation = useMutation({
+    mutationFn: (data: { id: number; status: TransportOrderStatus }) => {
+      return putUpdateOrderStatus(data.id, data.status);
+    },
+    onSuccess: (response) => {
+      if (response.data) {
+        queryClient.invalidateQueries({
+          queryKey: [fetchTransportOrders],
+        });
+        Toast.show({
+          type: "success",
+          text1: "Đơn đã được hoàn thành",
+        });
+        dispatch(removeOrder());
+        navigation.navigate("HomeStack", { screen: "OrderList" });
+      }
+
+      if (response.errors) {
+        response.errors.forEach((err) => {
+          Toast.show({
+            type: "error",
+            text1: err.description,
+          });
+        });
+      }
+    },
+  });
+
   const hideModal = () => setVisible(false);
+
+  const handleConfirm = () => {
+    if (currentOrder) {
+      completeMutation.mutate({
+        id: currentOrder.id,
+        status: TransportOrderStatus.Completed,
+      });
+      setVisible(false);
+    }
+  };
 
   return (
     <View>
@@ -42,6 +94,8 @@ export default function ConfirmModal(props: IConfirmModalProps) {
               icon={"checkbox-marked"}
               textColor={secondaryColor}
               style={styles.button}
+              loading={completeMutation.isPending}
+              onPress={handleConfirm}
             >
               Xác Nhận
             </Button>

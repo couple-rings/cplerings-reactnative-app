@@ -152,7 +152,7 @@ declare global {
 
   interface IDesignVersion {
     id: number;
-    customer: Omit<IUser, "hasSpouse">;
+    customer: IUser;
     design: IDesign;
     image: {
       url: string;
@@ -171,7 +171,7 @@ declare global {
     id: number;
     designVersion: IDesignVersion;
     spouse: ISpouse;
-    account: Omit<IUser, "hasSpouse">;
+    account: IUser;
     metalWeight: number;
     blueprint: {
       id: number;
@@ -185,6 +185,7 @@ declare global {
   interface ISpouse {
     id: number;
     customerId?: number;
+    fullName: string;
   }
 
   interface IRing {
@@ -199,7 +200,23 @@ declare global {
     };
     spouse: ISpouse;
     customDesign: ICustomDesign;
-    //needs engraving, finger size, metal spec, diamond
+    fingerSize: number;
+    engraving?: string;
+    metalSpecification: IMetalSpec;
+    diamonds: IDiamond[];
+    branch: IBranch;
+  }
+
+  interface IDiamond {
+    id: number;
+    giaReportNumber: string;
+    giaDocument: {
+      id: number;
+      url: string;
+    };
+    diamondSpecification: IDiamondSpec;
+    branch: IBranch;
+    createdAt: string;
   }
 
   interface IContract {
@@ -219,6 +236,7 @@ declare global {
 
   interface ICustomOrder {
     id: number;
+    orderNo: string;
     firstRing: IRing;
     secondRing: IRing;
     customer: IUser;
@@ -233,6 +251,7 @@ declare global {
 
   interface ITransportOrder {
     id: number;
+    orderNo: string;
     status: TransportOrderStatus;
     receiverName: string;
     receiverPhone: string;

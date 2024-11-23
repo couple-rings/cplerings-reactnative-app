@@ -14,14 +14,17 @@ import {
   Button as RnpButton,
   TextInput,
 } from "react-native-paper";
-// import Button from "src/components/button/Button";
 import Customer from "src/components/card/Customer";
-// import { ButtonVariant } from "src/util/enums";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import { Picker } from "@react-native-picker/picker";
-import { FailReason } from "src/util/enums";
+import {
+  ButtonVariant,
+  FailReason,
+  ProductType,
+  TransportOrderStatus,
+} from "src/util/enums";
 import {
   Controller,
   SubmitErrorHandler,
@@ -30,49 +33,23 @@ import {
 } from "react-hook-form";
 import ConfirmModal from "src/components/dialog/ConfirmModal";
 import Status from "src/components/card/Status";
-import moment from "moment";
-
-const menring = require("assets/menring.png");
-
-const products = [
-  {
-    name: "DR D Double Row Band Pavé Wedding Ring (Man)",
-    size: 3,
-    engraving: "NVA",
-    metal: "Vàng Trắng 18K",
-    diamond: "15PT, D, VS1",
-    image: menring,
-  },
-  {
-    name: "DR D Double Row Band Pavé Wedding Ring (Man)",
-    size: 3,
-    engraving: "NVA",
-    metal: "Vàng Trắng 18K",
-    diamond: "15PT, D, VS1",
-    image: menring,
-  },
-];
-
-const customer = {
-  name: "Nguyễn Văn A",
-  phone: "0123456789",
-  address: "944 TL43, KP2, Tan Thoi, Thu Duc",
-};
-
-const status = [
-  {
-    time: moment().format("HH:mm MMM Do YYYY"),
-    note: "Update note",
-  },
-  {
-    time: moment().format("HH:mm MMM Do YYYY"),
-    note: "Update note",
-  },
-  {
-    time: moment().format("HH:mm MMM Do YYYY"),
-    note: "Update note",
-  },
-];
+import Button from "src/components/button/Button";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  getConversations,
+  postCreateConversation,
+} from "src/services/conversation.service";
+import Toast from "react-native-toast-message";
+import { useAppDispatch, useAppSelector } from "src/util/hooks";
+import { selectConversation } from "src/redux/slices/conversation.slice";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { fetchConversations, fetchTransportOrders } from "src/util/querykey";
+import { socket } from "src/config/socket";
+import {
+  putUpdateOrderOnGoing,
+  putUpdateOrderStatus,
+} from "src/services/transportOrder.service";
+import { selectOrder } from "src/redux/slices/order.slice";
 
 const successConfirm =
   "Bạn cần đảm bảo đơn hàng này đã được giao thành công, vì trạng thái đơn không thể thay đổi sau khi xác nhận.";
@@ -86,14 +63,22 @@ interface Inputs {
 
 export default function OrderDetail() {
   const [selectedReason, setSelectedReason] = useState(FailReason.NotMet);
+  const [error, setError] = useState(false);
 
   const [openConfirmSuccess, setOpenConfirmSuccess] = useState(false);
   const [openConfirmFail, setOpenConfirmFail] = useState(false);
 
-  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+
+  const { id: userId } = useAppSelector((state) => state.auth.userInfo);
+  const { orderVerified } = useAppSelector((state) => state.order);
+
+  const navigation = useNavigation<NavigationProp<RootTabParamList>>();
 
   const { params } = useRoute<RouteProp<HomeStackParamList, "OrderDetail">>();
-  const { id } = params;
+  // MyFlag
+  const { id, order } = params;
 
   console.log(id);
 
@@ -102,6 +87,85 @@ export default function OrderDetail() {
     handleSubmit,
     formState: { errors },
   } = useForm<Inputs>();
+
+  const { data: conversationResponse } = useQuery({
+    queryKey: [fetchConversations, userId],
+    queryFn: () => {
+      return getConversations({ userId });
+    },
+    enabled: !!userId,
+  });
+
+  const chatMutation = useMutation({
+    mutationFn: (data: ICreateConversationRequest) => {
+      return postCreateConversation(data);
+    },
+    onSuccess: (response) => {
+      if (response.error) {
+        Toast.show({
+          type: "error",
+          text1: `${response.error}`,
+        });
+      }
+    },
+  });
+
+  const acceptMutation = useMutation({
+    mutationFn: (data: number[]) => {
+      return putUpdateOrderOnGoing(data);
+    },
+    onSuccess: (response) => {
+      if (response.data) {
+        queryClient.invalidateQueries({
+          queryKey: [fetchTransportOrders],
+        });
+        Toast.show({
+          type: "success",
+          text1: "Đã nhận đơn này",
+        });
+        navigation.navigate("HomeStack", { screen: "OrderList" });
+      }
+
+      if (response.errors) {
+        response.errors.forEach((err) => {
+          Toast.show({
+            type: "error",
+            text1: err.description,
+          });
+        });
+      }
+    },
+  });
+
+  const deliveryMutation = useMutation({
+    mutationFn: (data: { id: number; status: TransportOrderStatus }) => {
+      return putUpdateOrderStatus(data.id, data.status);
+    },
+    onSuccess: (response) => {
+      if (response.data) {
+        queryClient.invalidateQueries({
+          queryKey: [fetchTransportOrders],
+        });
+        Toast.show({
+          type: "success",
+          text1: "Đã bắt đầu giao đơn này",
+        });
+
+        // MyFlag
+        dispatch(selectOrder(order));
+        navigation.navigate("Map");
+      }
+
+      if (response.errors) {
+        response.errors.forEach((err) => {
+          Toast.show({
+            type: "error",
+            text1: err.description,
+          });
+        });
+      }
+    },
+  });
 
   const onInvalid: SubmitErrorHandler<Inputs> = (errors) => {
     if (errors.note && errors.note.ref && errors.note.ref.focus)
@@ -114,23 +178,75 @@ export default function OrderDetail() {
     setOpenConfirmFail(true);
   };
 
+  const getProducts = () => {
+    // MyFlag
+    if (order.customOrder)
+      return [order.customOrder.firstRing, order.customOrder.secondRing];
+
+    return [];
+  };
+
+  const handlePressChat = async () => {
+    const { customOrder } = order;
+
+    let customerId = 0;
+    if (customOrder) customerId = customOrder.customer.id;
+
+    const res = await chatMutation.mutateAsync({
+      participants: [userId, customerId],
+    });
+
+    if (res.data && conversationResponse?.data) {
+      const rooms = conversationResponse.data.map(
+        (conversation) => conversation._id
+      );
+      socket.emit("join_room", [...rooms, res.data._id], (response: string) =>
+        console.log(response)
+      );
+
+      dispatch(selectConversation(res.data));
+      navigation.navigate("ChatStack", { screen: "Chat" });
+    }
+  };
+
   return (
     <ScrollView>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>#OrderID</Text>
+          <Text style={styles.headerTitle}>#{order.orderNo}</Text>
         </View>
 
         <View style={styles.body}>
+          <View
+            style={{
+              marginTop: 16,
+              gap: 10,
+              flexDirection: "row",
+            }}
+          >
+            <MaterialIcons name="my-library-books" size={20} color="black" />
+            <Text style={styles.title}>
+              Loại đơn: {order.customOrder && "Đơn mua nhẫn cưới"}
+            </Text>
+          </View>
+
           <View style={{ paddingBottom: 16 }}>
             <View style={{ ...styles.head, marginBottom: 8 }}>
               <Entypo name="box" size={20} color={secondaryColor} />
-              <Text style={styles.title}>Item (2)</Text>
+              <Text style={styles.title}>
+                Hàng Giao ({getProducts().length})
+              </Text>
             </View>
 
-            {products.map((item, index) => (
-              <Product key={index} {...item} />
-            ))}
+            {getProducts().map((item, index) => {
+              let productType = ProductType.Jewelry;
+
+              if (item.customDesign) productType = ProductType.WeddingRing;
+
+              return (
+                <Product key={item.id} productType={productType} data={item} />
+              );
+            })}
           </View>
 
           <View>
@@ -151,181 +267,246 @@ export default function OrderDetail() {
                 textColor="black"
                 labelStyle={{ fontSize: 16 }}
                 style={{ borderRadius: 5 }}
+                onPress={handlePressChat}
+                loading={chatMutation.isPending}
               >
                 Chat
               </RnpButton>
             </View>
 
-            <Customer {...customer} />
+            <Customer
+              name={order.receiverName}
+              phone={order.receiverPhone}
+              address={order.deliveryAddress}
+            />
 
-            <RnpButton
-              mode="elevated"
-              buttonColor="white"
-              textColor={secondaryColor}
-              style={{ borderRadius: 10, marginVertical: 10 }}
-            >
-              Xem bản đồ
-            </RnpButton>
+            {order.status === TransportOrderStatus.Delivering && (
+              <RnpButton
+                mode="elevated"
+                buttonColor="white"
+                textColor={secondaryColor}
+                style={{ borderRadius: 10, marginVertical: 10 }}
+                onPress={() => navigation.navigate("Map")}
+              >
+                Xem bản đồ
+              </RnpButton>
+            )}
           </View>
 
-          <View>
-            <View style={styles.head}>
-              <MaterialCommunityIcons
-                name="note-text"
-                size={24}
-                color={secondaryColor}
-              />
-              <Text style={styles.title}>Thông Tin Cập Nhật</Text>
-            </View>
-
-            {status.map((item, index) => (
-              <Status {...item} key={index} />
-            ))}
-
-            <RnpButton
-              mode="elevated"
-              buttonColor="white"
-              textColor={secondaryColor}
-              style={{ borderRadius: 10, marginBottom: 10 }}
-              onPress={() =>
-                navigation.navigate("UpdateStatus", { orderId: 1 })
-              }
-            >
-              Xem thêm
-            </RnpButton>
-          </View>
-
-          <View>
-            {/* <Button
-              // eslint-disable-next-line no-constant-condition
-              title={true ? "Nhận Đơn" : "Bắt Đầu Giao"}
-              variant={ButtonVariant.Contained}
-              style={{ marginTop: 30, marginBottom: 60 }}
-            /> */}
-
-            <View style={styles.head}>
-              <MaterialCommunityIcons
-                name="check-decagram"
-                size={24}
-                color={secondaryColor}
-              />
-              <Text style={styles.title}>Xác Nhận Giao Hàng</Text>
-            </View>
-            <Card style={styles.cardContent}>
-              <Text style={styles.guideTitle}>
-                Hình ảnh xác nhận: 1 trong 2 cách sau
-              </Text>
-              <Text style={styles.guideItem}>
-                1. Ảnh chụp chung với khách hàng
-              </Text>
-              <Text style={styles.guideItem}>
-                2. Ảnh chụp khách hàng và sản phẩm
-              </Text>
-
-              <View style={styles.hr}></View>
-
-              <RnpButton
-                mode="elevated"
-                buttonColor="white"
-                textColor={secondaryColor}
-                icon={"barcode-scan"}
-                style={styles.step}
-                onPress={() => navigation.navigate("Scan")}
-              >
-                <Text>Bước 1: Xác nhận CCCD khách hàng</Text>
-              </RnpButton>
-
-              <RnpButton
-                mode="elevated"
-                buttonColor="white"
-                textColor={secondaryColor}
-                icon={"camera"}
-                style={styles.step}
-              >
-                Bước 2: Upload ảnh giao hàng
-              </RnpButton>
-
-              <RnpButton
-                mode="elevated"
-                buttonColor="white"
-                textColor={secondaryColor}
-                icon={"checkbox-marked"}
-                style={styles.step}
-                onPress={() => setOpenConfirmSuccess(true)}
-              >
-                Bước 3: Xác nhận hoàn thành
-              </RnpButton>
-            </Card>
-
-            <View style={styles.head}>
-              <AntDesign name="closesquareo" size={20} color={secondaryColor} />
-              <Text style={styles.title}>Giao Hàng Thất Bại</Text>
-            </View>
-            <Card style={styles.cardContent}>
-              <Text style={{ color: secondaryColor, ...styles.title }}>
-                Chọn Trường Hợp
-              </Text>
-              <Picker
-                style={{ color: secondaryColor }}
-                selectedValue={selectedReason}
-                onValueChange={(itemValue, itemIndex) =>
-                  setSelectedReason(itemValue)
-                }
-              >
-                <Picker.Item
-                  label="Không gặp được khách hàng"
-                  value={FailReason.NotMet}
+          {order.status !== TransportOrderStatus.Waiting && (
+            <View>
+              <View style={styles.head}>
+                <MaterialCommunityIcons
+                  name="note-text"
+                  size={24}
+                  color={secondaryColor}
                 />
-                <Picker.Item
-                  label="Khách hàng từ chối nhận hàng"
-                  value={FailReason.Rejected}
-                />
-              </Picker>
+                <Text style={styles.title}>Thông Tin Cập Nhật</Text>
+              </View>
 
-              <Controller
-                name="note"
-                control={control}
-                rules={{
-                  required: "* Vui lòng nhập lý do",
-                }}
-                render={({ field: { value, onChange, ref } }) => (
-                  <TextInput
-                    error={!!errors.note}
-                    placeholder="Nêu cụ thể lý do..."
-                    mode="outlined"
-                    multiline
-                    numberOfLines={5}
-                    style={styles.textInput}
-                    placeholderTextColor={errors.note ? "red" : secondaryColor}
-                    cursorColor={secondaryColor}
-                    textColor={secondaryColor}
-                    outlineColor="#D9D9D9"
-                    theme={{
-                      colors: {
-                        primary: secondaryColor,
-                      },
-                      roundness: 10,
-                    }}
-                    value={value}
-                    onChangeText={onChange}
-                    ref={ref}
-                  />
-                )}
-              />
-              {errors.note && (
-                <HelperText type="error">{errors.note.message}</HelperText>
+              {order.transportationNotes.map((item, index) => (
+                <Status {...item} key={index} />
+              ))}
+
+              {order.transportationNotes.length === 0 && (
+                <Text style={{ marginBottom: 24 }}>
+                  Chưa có thông tin cập nhật
+                </Text>
               )}
 
               <RnpButton
                 mode="elevated"
                 buttonColor="white"
                 textColor={secondaryColor}
-                style={{ borderRadius: 10, marginVertical: 16 }}
-                onPress={handleSubmit(onSubmit, onInvalid)}
+                style={{ borderRadius: 10, marginBottom: 10 }}
+                onPress={() =>
+                  navigation.navigate("HomeStack", {
+                    screen: "UpdateStatus",
+                    // MyFlag
+                    params: { orderId: order.id, order },
+                  })
+                }
               >
-                Xác Nhận
+                Xem thêm
               </RnpButton>
-            </Card>
+            </View>
+          )}
+
+          <View>
+            {order.status === TransportOrderStatus.Waiting && (
+              <Button
+                title={"Nhận Đơn"}
+                variant={ButtonVariant.Contained}
+                style={{ marginTop: 30, marginBottom: 60 }}
+                options={{ onPress: () => acceptMutation.mutate([order.id]) }}
+                loading={acceptMutation.isPending}
+              />
+            )}
+
+            {order.status === TransportOrderStatus.OnGoing && (
+              <Button
+                title={"Bắt Đầu Giao"}
+                variant={ButtonVariant.Contained}
+                style={{ marginTop: 30, marginBottom: 60 }}
+                options={{
+                  onPress: () =>
+                    deliveryMutation.mutate({
+                      id: order.id,
+                      status: TransportOrderStatus.Delivering,
+                    }),
+                }}
+                loading={deliveryMutation.isPending}
+              />
+            )}
+
+            {order.status === TransportOrderStatus.Delivering && (
+              <>
+                {/* Handle complete order */}
+                <View style={styles.head}>
+                  <MaterialCommunityIcons
+                    name="check-decagram"
+                    size={24}
+                    color={secondaryColor}
+                  />
+                  <Text style={styles.title}>Xác Nhận Giao Hàng</Text>
+                </View>
+                <Card style={styles.cardContent}>
+                  <Text style={styles.guideTitle}>
+                    Hình ảnh xác nhận: 1 trong 2 cách sau
+                  </Text>
+                  <Text style={styles.guideItem}>
+                    1. Ảnh chụp chung với khách hàng
+                  </Text>
+                  <Text style={styles.guideItem}>
+                    2. Ảnh chụp khách hàng và sản phẩm
+                  </Text>
+
+                  <View style={styles.hr}></View>
+
+                  <RnpButton
+                    mode="elevated"
+                    buttonColor="white"
+                    textColor={secondaryColor}
+                    icon={"barcode-scan"}
+                    style={styles.step}
+                    onPress={() =>
+                      navigation.navigate("HomeStack", { screen: "Scan" })
+                    }
+                  >
+                    <Text>Bước 1: Xác nhận CCCD khách hàng</Text>
+                  </RnpButton>
+
+                  <RnpButton
+                    mode="elevated"
+                    buttonColor="white"
+                    textColor={secondaryColor}
+                    icon={"camera"}
+                    style={styles.step}
+                  >
+                    Bước 2: Upload ảnh giao hàng
+                  </RnpButton>
+
+                  <RnpButton
+                    mode="elevated"
+                    buttonColor="white"
+                    textColor={secondaryColor}
+                    icon={"checkbox-marked"}
+                    style={styles.step}
+                    onPress={() => {
+                      if (!orderVerified) {
+                        setError(true);
+                        return;
+                      }
+                      setOpenConfirmSuccess(true);
+                    }}
+                  >
+                    Bước 3: Xác nhận hoàn thành
+                  </RnpButton>
+                </Card>
+                {error && (
+                  <HelperText type="error" style={{ marginTop: 8 }}>
+                    * Chưa xác minh CCCD khách hàng
+                  </HelperText>
+                )}
+
+                {/* Handle reject order */}
+                <View style={styles.head}>
+                  <AntDesign
+                    name="closesquareo"
+                    size={20}
+                    color={secondaryColor}
+                  />
+                  <Text style={styles.title}>Giao Hàng Thất Bại</Text>
+                </View>
+                <Card style={styles.cardContent}>
+                  <Text style={{ color: secondaryColor, ...styles.title }}>
+                    Chọn Trường Hợp
+                  </Text>
+                  <Picker
+                    style={{ color: secondaryColor }}
+                    selectedValue={selectedReason}
+                    onValueChange={(itemValue, itemIndex) =>
+                      setSelectedReason(itemValue)
+                    }
+                  >
+                    <Picker.Item
+                      label="Không gặp được khách hàng"
+                      value={FailReason.NotMet}
+                    />
+                    <Picker.Item
+                      label="Khách hàng từ chối nhận hàng"
+                      value={FailReason.Rejected}
+                    />
+                  </Picker>
+
+                  <Controller
+                    name="note"
+                    control={control}
+                    rules={{
+                      required: "* Vui lòng nhập lý do",
+                    }}
+                    render={({ field: { value, onChange, ref } }) => (
+                      <TextInput
+                        error={!!errors.note}
+                        placeholder="Nêu cụ thể lý do..."
+                        mode="outlined"
+                        multiline
+                        numberOfLines={5}
+                        style={styles.textInput}
+                        placeholderTextColor={
+                          errors.note ? "red" : secondaryColor
+                        }
+                        cursorColor={secondaryColor}
+                        textColor={secondaryColor}
+                        outlineColor="#D9D9D9"
+                        theme={{
+                          colors: {
+                            primary: secondaryColor,
+                          },
+                          roundness: 10,
+                        }}
+                        value={value}
+                        onChangeText={onChange}
+                        ref={ref}
+                      />
+                    )}
+                  />
+                  {errors.note && (
+                    <HelperText type="error">{errors.note.message}</HelperText>
+                  )}
+
+                  <RnpButton
+                    mode="elevated"
+                    buttonColor="white"
+                    textColor={secondaryColor}
+                    style={{ borderRadius: 10, marginVertical: 16 }}
+                    onPress={handleSubmit(onSubmit, onInvalid)}
+                  >
+                    Xác Nhận
+                  </RnpButton>
+                </Card>
+              </>
+            )}
           </View>
         </View>
 

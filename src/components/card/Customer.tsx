@@ -27,7 +27,7 @@ export default function Customer(props: ICustomerCardProps) {
           size={16}
           color={secondaryColor}
         />
-        <Text style={styles.text}>{address}</Text>
+        <Text style={{ ...styles.text, flex: 1 }}>{address}</Text>
       </View>
       <View style={styles.row}>
         <MaterialIcons name="sticky-note-2" size={20} color={secondaryColor} />

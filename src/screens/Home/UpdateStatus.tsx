@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import React from "react";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import moment from "moment";
 import Status from "src/components/card/Status";
 import { secondaryColor } from "src/util/constants";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -29,24 +28,12 @@ interface Inputs {
   note: string;
 }
 
-const status = [
-  {
-    time: moment().format("HH:mm MMM Do YYYY"),
-    note: "Update note",
-  },
-  {
-    time: moment().format("HH:mm MMM Do YYYY"),
-    note: "Update note",
-  },
-  {
-    time: moment().format("HH:mm MMM Do YYYY"),
-    note: "Update note",
-  },
-];
-
 export default function UpdateStatus() {
   const { params } = useRoute<RouteProp<HomeStackParamList, "UpdateStatus">>();
-  const { orderId } = params;
+  // MyFlag
+  const { orderId, order } = params;
+
+  const { transportationNotes } = order;
 
   console.log(orderId);
 
@@ -81,7 +68,7 @@ export default function UpdateStatus() {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={status}
+        data={transportationNotes}
         renderItem={({ item }) => (
           <Status {...item} pressStatus={pressStatus} />
         )}
@@ -160,7 +147,7 @@ const styles = StyleSheet.create({
   },
   empty: {
     textAlign: "center",
-    marginTop: 36,
+    marginVertical: 36,
     color: secondaryColor,
   },
   title: {
