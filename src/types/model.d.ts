@@ -50,6 +50,14 @@ declare global {
     originalName: string;
   }
 
+  interface IMainFile {
+    id: number;
+
+    url: string;
+
+    type: FileType;
+  }
+
   interface IMessage {
     _id?: string;
 
@@ -258,10 +266,12 @@ declare global {
     deliveryAddress: string;
     customOrder?: ICustomOrder;
     transporter: IUser;
-    transportationNotes: {
-      id: number;
-      date: string;
-      note: string;
-    }[];
+    transportationNotes: ITransportNote[];
+  }
+
+  interface ITransportNote {
+    id: number;
+    date: string;
+    note: string;
   }
 }

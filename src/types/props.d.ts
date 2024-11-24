@@ -1,5 +1,5 @@
 import { StyleProp, TouchableOpacityProps, ViewStyle } from "react-native";
-import { ProductType } from "src/util/enums";
+import { FailReason, ProductType } from "src/util/enums";
 
 export {};
 
@@ -39,6 +39,8 @@ declare global {
     setVisible: (v: boolean) => void;
     title: string;
     message: string;
+    reason?: FailReason;
+    note?: string;
   }
 
   interface IConversationProps {

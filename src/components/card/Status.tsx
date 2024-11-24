@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: secondaryColor,
     textAlign: "right",
-    marginBottom: 8,
+    marginBottom: 1,
   },
   content: {
     flexDirection: "row",

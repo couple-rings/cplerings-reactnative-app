@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, SafeAreaView, StyleSheet } from "react-native";
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StyleSheet,
+  View,
+} from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
 import Toast from "react-native-toast-message";
@@ -8,8 +13,12 @@ import { primaryColor } from "src/util/constants";
 import MapViewDirections from "react-native-maps-directions";
 import { useAppSelector } from "src/util/hooks";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { fetchTransportOrderDetail } from "src/util/querykey";
+import { getTransportOrderDetail } from "src/services/transportOrder.service";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Map() {
+  const [order, setOrder] = useState<ITransportOrder | null>(null);
   const [myLocation, setMyLocation] =
     useState<Location.LocationObjectCoords | null>(null);
   const [destination, setDestination] = useState({
@@ -19,27 +28,34 @@ export default function Map() {
 
   const navigation = useNavigation<NavigationProp<RootTabParamList>>();
 
-  // MyFlag
   const { currentOrder } = useAppSelector((state) => state.order);
 
-  // MyFlag
+  const { data: orderResponse, isLoading } = useQuery({
+    queryKey: [fetchTransportOrderDetail, currentOrder],
+
+    queryFn: () => {
+      return getTransportOrderDetail(currentOrder);
+    },
+    enabled: currentOrder !== 0,
+  });
+
   useEffect(() => {
-    if (!currentOrder) {
+    if (!currentOrder || currentOrder === 0) {
       navigation.navigate("HomeStack", { screen: "OrderList" });
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentOrder]);
 
-  // MyFlag
   useEffect(() => {
     let id = 0;
-    if (currentOrder?.customOrder) id = currentOrder.customOrder.id;
+
+    if (order?.customOrder) id = order.customOrder.id;
 
     socket.emit("join_room_location", id, (response: string) =>
       console.log(response)
     );
-  }, [currentOrder]);
+  }, [order]);
 
   useEffect(() => {
     (async () => {
@@ -57,13 +73,10 @@ export default function Map() {
     })();
   }, []);
 
-  // MyFlag
   useEffect(() => {
     (async () => {
-      if (currentOrder) {
-        const coordinates = await Location.geocodeAsync(
-          currentOrder.deliveryAddress
-        );
+      if (order) {
+        const coordinates = await Location.geocodeAsync(order.deliveryAddress);
         if (coordinates && coordinates.length > 0) {
           console.log(coordinates);
 
@@ -74,9 +87,8 @@ export default function Map() {
         }
       }
     })();
-  }, [currentOrder]);
+  }, [order]);
 
-  // MyFlag
   useEffect(() => {
     const sub = Location.watchPositionAsync(
       { accuracy: Location.Accuracy.BestForNavigation },
@@ -86,7 +98,7 @@ export default function Map() {
         socket.emit("location_update", {
           latitude,
           longitude,
-          orderId: currentOrder?.id,
+          orderId: order?.id,
         });
       }
     );
@@ -96,7 +108,20 @@ export default function Map() {
         .then((subscription) => subscription.remove())
         .catch((err) => console.log(err));
     };
-  }, [currentOrder]);
+  }, [order]);
+
+  useEffect(() => {
+    if (orderResponse?.data) {
+      setOrder(orderResponse.data.transportationOrder);
+    }
+  }, [orderResponse]);
+
+  if (isLoading || !order)
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size={50} color={primaryColor} />
+      </View>
+    );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -142,5 +167,10 @@ const styles = StyleSheet.create({
   map: {
     width: "100%",
     height: "100%",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

@@ -26,3 +26,24 @@ export const putUpdateOrderStatus = (
     IResponse<{ transportationOrder: ITransportOrder }>
   >(`transportation-orders/${id}/status`, { status });
 };
+
+export const getTransportOrderDetail = (id: number) => {
+  return axios.get<
+    unknown,
+    IResponse<{ transportationOrder: ITransportOrder }>
+  >(`transportation-orders/${id}`);
+};
+
+export const putUpdateOrderImage = (orderId: number, imageId: number) => {
+  return axios.put<
+    unknown,
+    IResponse<{ transportationOrders: ITransportOrder }>
+  >(`transportation-orders/${orderId}/delivery-image`, { imageId });
+};
+
+export const postCreateNote = (data: ICreateNoteRequest) => {
+  return axios.post<unknown, IResponse<ITransportNote>>(
+    `transportation-orders/notes`,
+    data
+  );
+};

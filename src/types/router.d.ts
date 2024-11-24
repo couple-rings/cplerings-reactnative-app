@@ -28,11 +28,11 @@ declare global {
   type HomeStackParamList = {
     OrderList: undefined;
 
-    OrderDetail: { id: number; order: ITransportOrder };
+    OrderDetail: { id: number };
 
     Scan: undefined;
 
-    UpdateStatus: { orderId: number; order: ITransportOrder };
+    UpdateStatus: { orderId: number };
   };
 
   type ChatStackParamList = {

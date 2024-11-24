@@ -27,8 +27,7 @@ export default function Order(props: IOrderCardProps) {
   return (
     <Card
       style={styles.container}
-      // MyFlag
-      onPress={() => navigation.navigate("OrderDetail", { id, order: data })}
+      onPress={() => navigation.navigate("OrderDetail", { id })}
     >
       <View style={styles.header}>
         <Text style={styles.orderId}>#{orderNo}</Text>

@@ -30,13 +30,6 @@ export enum ErrorCode {
   JwtExpired = "008",
 }
 
-export enum OrderStatus {
-  Waiting = "WAITING",
-  OnGoing = "ON GOING",
-  Fulfilled = "FULFILLED",
-  NotFulfilled = "NOT FULFILLED",
-}
-
 export enum FailReason {
   NotMet = "NOT MET",
   Rejected = "REJECTED",

@@ -27,7 +27,6 @@ export default function Scan() {
   const ref = useRef<CameraView>(null);
   const dispatch = useAppDispatch();
 
-  // MyFlag
   const { currentOrder } = useAppSelector((state) => state.order);
 
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
@@ -60,11 +59,10 @@ export default function Scan() {
           text1: "Xác minh thành công",
         });
         dispatch(verifyOrder());
-        // MyFlag
+
         if (currentOrder)
           navigation.navigate("OrderDetail", {
-            id: currentOrder.id,
-            order: currentOrder,
+            id: currentOrder,
           });
       }
 

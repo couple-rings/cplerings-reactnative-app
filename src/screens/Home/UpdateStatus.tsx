@@ -1,15 +1,15 @@
 import {
+  ActivityIndicator,
   Alert,
-  FlatList,
-  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import Status from "src/components/card/Status";
-import { secondaryColor } from "src/util/constants";
+import { primaryColor, secondaryColor } from "src/util/constants";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   Card,
@@ -23,21 +23,71 @@ import {
   SubmitHandler,
   useForm,
 } from "react-hook-form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  getTransportOrderDetail,
+  postCreateNote,
+} from "src/services/transportOrder.service";
+import {
+  // fetchTransportNotes,
+  fetchTransportOrderDetail,
+} from "src/util/querykey";
+import Toast from "react-native-toast-message";
+import { TransportOrderStatus } from "src/util/enums";
 
 interface Inputs {
   note: string;
 }
 
 export default function UpdateStatus() {
+  const [order, setOrder] = useState<ITransportOrder | null>(null);
+
   const { params } = useRoute<RouteProp<HomeStackParamList, "UpdateStatus">>();
-  // MyFlag
-  const { orderId, order } = params;
 
-  const { transportationNotes } = order;
+  const { orderId } = params;
 
-  console.log(orderId);
+  const queryClient = useQueryClient();
+
+  const { data: orderResponse, isLoading } = useQuery({
+    queryKey: [fetchTransportOrderDetail, orderId],
+
+    queryFn: () => {
+      return getTransportOrderDetail(orderId);
+    },
+    enabled: orderId !== 0,
+  });
+
+  const noteMutation = useMutation({
+    mutationFn: (data: ICreateNoteRequest) => {
+      return postCreateNote(data);
+    },
+    onSuccess: (response) => {
+      if (response.data) {
+        queryClient.invalidateQueries({
+          queryKey: [fetchTransportOrderDetail, orderId],
+        });
+
+        Toast.show({
+          type: "success",
+          text1: "Tạo ghi chú thành công",
+        });
+
+        reset();
+      }
+
+      if (response.errors) {
+        response.errors.forEach((err) => {
+          Toast.show({
+            type: "error",
+            text1: err.description,
+          });
+        });
+      }
+    },
+  });
 
   const {
+    reset,
     control,
     handleSubmit,
     formState: { errors },
@@ -62,85 +112,97 @@ export default function UpdateStatus() {
   };
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    console.log(data);
+    noteMutation.mutate({ transportationOrderId: orderId, note: data.note });
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={transportationNotes}
-        renderItem={({ item }) => (
-          <Status {...item} pressStatus={pressStatus} />
-        )}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <Text style={styles.empty}>Chưa cập nhật thông tin nào</Text>
-        }
-        ListHeaderComponent={
-          <View style={styles.head}>
-            <MaterialCommunityIcons
-              name="note-text"
-              size={24}
-              color={secondaryColor}
-            />
-            <Text style={styles.title}>Thông Tin Cập Nhật</Text>
-          </View>
-        }
-        ListFooterComponent={
-          <Card style={styles.cardContent}>
-            <Controller
-              name="note"
-              control={control}
-              rules={{
-                required: "* Vui lòng nhập thông tin",
-              }}
-              render={({ field: { value, onChange, ref } }) => (
-                <TextInput
-                  error={!!errors.note}
-                  placeholder="Thông tin cụ thể..."
-                  mode="outlined"
-                  multiline
-                  numberOfLines={5}
-                  style={styles.textInput}
-                  placeholderTextColor={errors.note ? "red" : secondaryColor}
-                  cursorColor={secondaryColor}
-                  textColor={secondaryColor}
-                  outlineColor="#D9D9D9"
-                  theme={{
-                    colors: {
-                      primary: secondaryColor,
-                    },
-                    roundness: 10,
-                  }}
-                  value={value}
-                  onChangeText={onChange}
-                  ref={ref}
-                />
-              )}
-            />
-            {errors.note && (
-              <HelperText type="error">{errors.note.message}</HelperText>
-            )}
+  useEffect(() => {
+    if (orderResponse?.data) {
+      setOrder(orderResponse.data.transportationOrder);
+    }
+  }, [orderResponse]);
 
-            <RnpButton
-              mode="elevated"
-              buttonColor="white"
-              textColor={secondaryColor}
-              style={{ borderRadius: 10, marginVertical: 16 }}
-              onPress={handleSubmit(onSubmit, onInvalid)}
-            >
-              Xác Nhận
-            </RnpButton>
-          </Card>
-        }
-      />
-    </SafeAreaView>
+  if (isLoading)
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size={50} color={primaryColor} />
+      </View>
+    );
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.head}>
+        <MaterialCommunityIcons
+          name="note-text"
+          size={24}
+          color={secondaryColor}
+        />
+        <Text style={styles.title}>Thông Tin Cập Nhật</Text>
+      </View>
+
+      {order?.transportationNotes.map((item) => {
+        return <Status key={item.id} {...item} pressStatus={pressStatus} />;
+      })}
+
+      {order?.transportationNotes.length === 0 && (
+        <Text style={styles.empty}>Chưa cập nhật thông tin nào</Text>
+      )}
+
+      {order?.status === TransportOrderStatus.Delivering && (
+        <Card style={styles.cardContent}>
+          <Controller
+            name="note"
+            control={control}
+            rules={{
+              required: "* Vui lòng nhập thông tin",
+            }}
+            render={({ field: { value, onChange, ref } }) => (
+              <TextInput
+                error={!!errors.note}
+                placeholder="Thông tin cụ thể..."
+                mode="outlined"
+                multiline
+                numberOfLines={5}
+                style={styles.textInput}
+                placeholderTextColor={errors.note ? "red" : secondaryColor}
+                cursorColor={secondaryColor}
+                textColor={secondaryColor}
+                outlineColor="#D9D9D9"
+                theme={{
+                  colors: {
+                    primary: secondaryColor,
+                  },
+                  roundness: 10,
+                }}
+                value={value}
+                onChangeText={onChange}
+                ref={ref}
+              />
+            )}
+          />
+          {errors.note && (
+            <HelperText type="error">{errors.note.message}</HelperText>
+          )}
+
+          <RnpButton
+            mode="elevated"
+            buttonColor="white"
+            textColor={secondaryColor}
+            style={{ borderRadius: 10, marginVertical: 16 }}
+            onPress={handleSubmit(onSubmit, onInvalid)}
+            loading={noteMutation.isPending}
+          >
+            Xác Nhận
+          </RnpButton>
+        </Card>
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingHorizontal: 16,
   },
   list: {
     padding: 16,
@@ -159,15 +221,22 @@ const styles = StyleSheet.create({
     gap: 10,
     alignItems: "center",
     marginVertical: 20,
+    paddingHorizontal: 16,
   },
   cardContent: {
     backgroundColor: "white",
     paddingVertical: 16,
     paddingHorizontal: 20,
+    marginBottom: 16,
   },
   textInput: {
     paddingVertical: 12,
     marginBottom: 6,
     backgroundColor: "white",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

@@ -93,8 +93,6 @@ const OrderList = () => {
         setMetaData(rest);
       }
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
   useEffect(() => {
@@ -109,8 +107,6 @@ const OrderList = () => {
     clone[0].quantity = orderList.length;
 
     setOptions(clone);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderList]);
 
   useEffect(() => {

@@ -1,3 +1,5 @@
+import { TransportOrderStatus } from "src/util/enums";
+
 export {};
 
 declare global {
@@ -87,6 +89,11 @@ declare global {
     pageSize: number;
     transporterId?: number;
     branchId?: number;
-    // need status and branch id
+    status?: TransportOrderStatus;
+  }
+
+  interface ICreateNoteRequest {
+    transportationOrderId: number;
+    note: string;
   }
 }

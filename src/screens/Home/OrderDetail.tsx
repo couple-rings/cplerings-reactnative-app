@@ -1,12 +1,27 @@
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
-import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import React, { useEffect, useState } from "react";
 import {
   NavigationProp,
   RouteProp,
   useNavigation,
   useRoute,
 } from "@react-navigation/native";
-import { primaryColor, secondaryColor } from "src/util/constants";
+import {
+  acceptedImage,
+  failConfirm,
+  noteAcceptOrder,
+  noteStartOrder,
+  primaryColor,
+  secondaryColor,
+  successConfirm,
+} from "src/util/constants";
 import Product from "src/components/card/Product";
 import {
   Card,
@@ -43,27 +58,31 @@ import Toast from "react-native-toast-message";
 import { useAppDispatch, useAppSelector } from "src/util/hooks";
 import { selectConversation } from "src/redux/slices/conversation.slice";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { fetchConversations, fetchTransportOrders } from "src/util/querykey";
+import {
+  fetchConversations,
+  fetchTransportOrderDetail,
+  fetchTransportOrders,
+} from "src/util/querykey";
 import { socket } from "src/config/socket";
 import {
+  getTransportOrderDetail,
+  postCreateNote,
+  putUpdateOrderImage,
   putUpdateOrderOnGoing,
   putUpdateOrderStatus,
 } from "src/services/transportOrder.service";
-import { selectOrder } from "src/redux/slices/order.slice";
-
-const successConfirm =
-  "Bạn cần đảm bảo đơn hàng này đã được giao thành công, vì trạng thái đơn không thể thay đổi sau khi xác nhận.";
-
-const failConfirm =
-  "Bạn cần đảm bảo đơn hàng này đã giao thất bại, vì trạng thái đơn không thể thay đổi sau khi xác nhận.";
+import { selectOrder, verifyUpload } from "src/redux/slices/order.slice";
+import * as ImagePicker from "expo-image-picker";
+import { appendDataTypeBase64 } from "src/util/functions";
+import { postUploadFile } from "src/services/file.service";
 
 interface Inputs {
   note: string;
 }
 
 export default function OrderDetail() {
+  const [order, setOrder] = useState<ITransportOrder | null>(null);
   const [selectedReason, setSelectedReason] = useState(FailReason.NotMet);
-  const [error, setError] = useState(false);
 
   const [openConfirmSuccess, setOpenConfirmSuccess] = useState(false);
   const [openConfirmFail, setOpenConfirmFail] = useState(false);
@@ -72,19 +91,20 @@ export default function OrderDetail() {
   const queryClient = useQueryClient();
 
   const { id: userId } = useAppSelector((state) => state.auth.userInfo);
-  const { orderVerified } = useAppSelector((state) => state.order);
+  const { orderVerified, imageUploaded } = useAppSelector(
+    (state) => state.order
+  );
 
   const navigation = useNavigation<NavigationProp<RootTabParamList>>();
 
   const { params } = useRoute<RouteProp<HomeStackParamList, "OrderDetail">>();
-  // MyFlag
-  const { id, order } = params;
 
-  console.log(id);
+  const { id } = params;
 
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<Inputs>();
 
@@ -94,6 +114,15 @@ export default function OrderDetail() {
       return getConversations({ userId });
     },
     enabled: !!userId,
+  });
+
+  const { data: orderResponse, isLoading } = useQuery({
+    queryKey: [fetchTransportOrderDetail, id],
+
+    queryFn: () => {
+      return getTransportOrderDetail(id);
+    },
+    enabled: id !== 0,
   });
 
   const chatMutation = useMutation({
@@ -116,6 +145,10 @@ export default function OrderDetail() {
     },
     onSuccess: (response) => {
       if (response.data) {
+        noteMutation.mutate({
+          transportationOrderId: id,
+          note: noteAcceptOrder,
+        });
         queryClient.invalidateQueries({
           queryKey: [fetchTransportOrders],
         });
@@ -143,6 +176,10 @@ export default function OrderDetail() {
     },
     onSuccess: (response) => {
       if (response.data) {
+        noteMutation.mutate({
+          transportationOrderId: id,
+          note: noteStartOrder,
+        });
         queryClient.invalidateQueries({
           queryKey: [fetchTransportOrders],
         });
@@ -151,9 +188,74 @@ export default function OrderDetail() {
           text1: "Đã bắt đầu giao đơn này",
         });
 
-        // MyFlag
-        dispatch(selectOrder(order));
+        dispatch(selectOrder(id));
         navigation.navigate("Map");
+      }
+
+      if (response.errors) {
+        response.errors.forEach((err) => {
+          Toast.show({
+            type: "error",
+            text1: err.description,
+          });
+        });
+      }
+    },
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: (base64: string) => {
+      return postUploadFile(base64);
+    },
+    onSuccess: (response) => {
+      if (response.errors) {
+        response.errors.forEach((err) =>
+          Toast.show({
+            type: "success",
+            text1: err.description,
+          })
+        );
+      }
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: { orderId: number; imageId: number }) => {
+      return putUpdateOrderImage(data.orderId, data.imageId);
+    },
+    onSuccess: (response) => {
+      if (response.data) {
+        queryClient.invalidateQueries({
+          queryKey: [fetchTransportOrderDetail, id],
+        });
+        Toast.show({
+          type: "success",
+          text1: "Upload ảnh thành công",
+        });
+
+        dispatch(verifyUpload());
+      }
+
+      if (response.errors) {
+        response.errors.forEach((err) => {
+          Toast.show({
+            type: "error",
+            text1: err.description,
+          });
+        });
+      }
+    },
+  });
+
+  const noteMutation = useMutation({
+    mutationFn: (data: ICreateNoteRequest) => {
+      return postCreateNote(data);
+    },
+    onSuccess: (response) => {
+      if (response.data) {
+        queryClient.invalidateQueries({
+          queryKey: [fetchTransportOrderDetail, id],
+        });
       }
 
       if (response.errors) {
@@ -174,46 +276,95 @@ export default function OrderDetail() {
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     console.log(data);
-    console.log(selectedReason);
     setOpenConfirmFail(true);
   };
 
   const getProducts = () => {
-    // MyFlag
-    if (order.customOrder)
-      return [order.customOrder.firstRing, order.customOrder.secondRing];
+    if (order) {
+      const { customOrder } = order;
+
+      if (customOrder) return [customOrder.firstRing, customOrder.secondRing];
+    }
 
     return [];
   };
 
   const handlePressChat = async () => {
-    const { customOrder } = order;
+    if (order) {
+      const { customOrder } = order;
 
-    let customerId = 0;
-    if (customOrder) customerId = customOrder.customer.id;
+      let customerId = 0;
+      if (customOrder) customerId = customOrder.customer.id;
 
-    const res = await chatMutation.mutateAsync({
-      participants: [userId, customerId],
-    });
+      const res = await chatMutation.mutateAsync({
+        participants: [userId, customerId],
+      });
 
-    if (res.data && conversationResponse?.data) {
-      const rooms = conversationResponse.data.map(
-        (conversation) => conversation._id
-      );
-      socket.emit("join_room", [...rooms, res.data._id], (response: string) =>
-        console.log(response)
-      );
+      if (res.data && conversationResponse?.data) {
+        const rooms = conversationResponse.data.map(
+          (conversation) => conversation._id
+        );
+        socket.emit("join_room", [...rooms, res.data._id], (response: string) =>
+          console.log(response)
+        );
 
-      dispatch(selectConversation(res.data));
-      navigation.navigate("ChatStack", { screen: "Chat" });
+        dispatch(selectConversation(res.data));
+        navigation.navigate("ChatStack", { screen: "Chat" });
+      }
     }
   };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      aspect: [4, 3],
+      quality: 1,
+      base64: true,
+    });
+
+    if (
+      !result.canceled &&
+      result.assets[0].base64 &&
+      result.assets[0].mimeType
+    ) {
+      const { base64, mimeType } = result.assets[0];
+
+      if (!acceptedImage.includes(mimeType)) {
+        Toast.show({
+          type: "error",
+          text1: "Định dạng ảnh không hợp lệ",
+        });
+        return;
+      }
+
+      const base64Data = appendDataTypeBase64(base64, mimeType);
+      const uploadResponse = await uploadMutation.mutateAsync(base64Data);
+
+      if (uploadResponse.data) {
+        updateMutation.mutate({ orderId: id, imageId: uploadResponse.data.id });
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (orderResponse?.data) {
+      setOrder(orderResponse.data.transportationOrder);
+    }
+  }, [orderResponse]);
+
+  if (isLoading)
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size={50} color={primaryColor} />
+      </View>
+    );
 
   return (
     <ScrollView>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>#{order.orderNo}</Text>
+          <Text style={styles.headerTitle}>#{order?.orderNo}</Text>
         </View>
 
         <View style={styles.body}>
@@ -226,7 +377,7 @@ export default function OrderDetail() {
           >
             <MaterialIcons name="my-library-books" size={20} color="black" />
             <Text style={styles.title}>
-              Loại đơn: {order.customOrder && "Đơn mua nhẫn cưới"}
+              Loại đơn: {order?.customOrder && "Đơn mua nhẫn cưới"}
             </Text>
           </View>
 
@@ -274,13 +425,15 @@ export default function OrderDetail() {
               </RnpButton>
             </View>
 
-            <Customer
-              name={order.receiverName}
-              phone={order.receiverPhone}
-              address={order.deliveryAddress}
-            />
+            {order && (
+              <Customer
+                name={order.receiverName}
+                phone={order.receiverPhone}
+                address={order.deliveryAddress}
+              />
+            )}
 
-            {order.status === TransportOrderStatus.Delivering && (
+            {order?.status === TransportOrderStatus.Delivering && (
               <RnpButton
                 mode="elevated"
                 buttonColor="white"
@@ -293,7 +446,7 @@ export default function OrderDetail() {
             )}
           </View>
 
-          {order.status !== TransportOrderStatus.Waiting && (
+          {order?.status !== TransportOrderStatus.Waiting && (
             <View>
               <View style={styles.head}>
                 <MaterialCommunityIcons
@@ -304,11 +457,11 @@ export default function OrderDetail() {
                 <Text style={styles.title}>Thông Tin Cập Nhật</Text>
               </View>
 
-              {order.transportationNotes.map((item, index) => (
+              {order?.transportationNotes.slice(0, 3).map((item, index) => (
                 <Status {...item} key={index} />
               ))}
 
-              {order.transportationNotes.length === 0 && (
+              {order?.transportationNotes.length === 0 && (
                 <Text style={{ marginBottom: 24 }}>
                   Chưa có thông tin cập nhật
                 </Text>
@@ -322,8 +475,7 @@ export default function OrderDetail() {
                 onPress={() =>
                   navigation.navigate("HomeStack", {
                     screen: "UpdateStatus",
-                    // MyFlag
-                    params: { orderId: order.id, order },
+                    params: { orderId: order?.id ?? 0 },
                   })
                 }
               >
@@ -333,7 +485,7 @@ export default function OrderDetail() {
           )}
 
           <View>
-            {order.status === TransportOrderStatus.Waiting && (
+            {order?.status === TransportOrderStatus.Waiting && (
               <Button
                 title={"Nhận Đơn"}
                 variant={ButtonVariant.Contained}
@@ -343,7 +495,7 @@ export default function OrderDetail() {
               />
             )}
 
-            {order.status === TransportOrderStatus.OnGoing && (
+            {order?.status === TransportOrderStatus.OnGoing && (
               <Button
                 title={"Bắt Đầu Giao"}
                 variant={ButtonVariant.Contained}
@@ -359,7 +511,7 @@ export default function OrderDetail() {
               />
             )}
 
-            {order.status === TransportOrderStatus.Delivering && (
+            {order?.status === TransportOrderStatus.Delivering && (
               <>
                 {/* Handle complete order */}
                 <View style={styles.head}>
@@ -384,6 +536,7 @@ export default function OrderDetail() {
                   <View style={styles.hr}></View>
 
                   <RnpButton
+                    disabled={orderVerified}
                     mode="elevated"
                     buttonColor="white"
                     textColor={secondaryColor}
@@ -394,40 +547,43 @@ export default function OrderDetail() {
                     }
                   >
                     <Text>Bước 1: Xác nhận CCCD khách hàng</Text>
+                    {orderVerified && (
+                      <AntDesign name="check" size={16} color="green" />
+                    )}
                   </RnpButton>
 
                   <RnpButton
+                    loading={
+                      uploadMutation.isPending || updateMutation.isPending
+                    }
+                    disabled={imageUploaded || !orderVerified}
                     mode="elevated"
                     buttonColor="white"
                     textColor={secondaryColor}
                     icon={"camera"}
                     style={styles.step}
+                    onPress={pickImage}
                   >
                     Bước 2: Upload ảnh giao hàng
+                    {imageUploaded && (
+                      <AntDesign name="check" size={16} color="green" />
+                    )}
                   </RnpButton>
 
                   <RnpButton
+                    disabled={!orderVerified || !imageUploaded}
                     mode="elevated"
                     buttonColor="white"
                     textColor={secondaryColor}
                     icon={"checkbox-marked"}
                     style={styles.step}
                     onPress={() => {
-                      if (!orderVerified) {
-                        setError(true);
-                        return;
-                      }
                       setOpenConfirmSuccess(true);
                     }}
                   >
                     Bước 3: Xác nhận hoàn thành
                   </RnpButton>
                 </Card>
-                {error && (
-                  <HelperText type="error" style={{ marginTop: 8 }}>
-                    * Chưa xác minh CCCD khách hàng
-                  </HelperText>
-                )}
 
                 {/* Handle reject order */}
                 <View style={styles.head}>
@@ -522,6 +678,8 @@ export default function OrderDetail() {
           setVisible={setOpenConfirmFail}
           title="Giao Hàng Thất Bại"
           message={failConfirm}
+          reason={selectedReason}
+          note={getValues().note}
         />
       </SafeAreaView>
     </ScrollView>
@@ -541,8 +699,8 @@ const styles = StyleSheet.create({
     color: secondaryColor,
   },
   body: {
-    paddingHorizontal: 16,
     paddingBottom: 24,
+    paddingHorizontal: 16,
   },
   customerHead: {
     flexDirection: "row",
@@ -590,5 +748,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 6,
     backgroundColor: "white",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
