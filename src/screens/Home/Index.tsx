@@ -5,11 +5,12 @@ import { View, StyleSheet, FlatList } from "react-native";
 import { ActivityIndicator, Text } from "react-native-paper";
 import CurlButton from "src/components/button/CurlButton";
 import Order from "src/components/card/Order";
+import { selectOrder } from "src/redux/slices/order.slice";
 import { getTransportOrders } from "src/services/transportOrder.service";
 import { pageSize, primaryColor } from "src/util/constants";
 import { ButtonVariant, TransportOrderStatus } from "src/util/enums";
 import { formatStatus } from "src/util/functions";
-import { useAppSelector } from "src/util/hooks";
+import { useAppDispatch, useAppSelector } from "src/util/hooks";
 import { fetchTransportOrders } from "src/util/querykey";
 
 const initOption = [
@@ -56,6 +57,7 @@ const OrderList = () => {
   const [selected, setSelected] = useState(initOption[0]);
 
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   const { branchId, id: userId } = useAppSelector(
     (state) => state.auth.userInfo
@@ -101,12 +103,15 @@ const OrderList = () => {
     orderList.forEach((item) => {
       clone.forEach((option) => {
         if (item.status === option.title) option.quantity += 1;
+        if (item.status === TransportOrderStatus.Delivering)
+          dispatch(selectOrder(item.id));
       });
     });
 
     clone[0].quantity = orderList.length;
 
     setOptions(clone);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderList]);
 
   useEffect(() => {
