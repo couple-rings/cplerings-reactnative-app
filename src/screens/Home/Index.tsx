@@ -5,7 +5,7 @@ import { View, StyleSheet, FlatList } from "react-native";
 import { ActivityIndicator, Text } from "react-native-paper";
 import CurlButton from "src/components/button/CurlButton";
 import Order from "src/components/card/Order";
-import { selectOrder } from "src/redux/slices/order.slice";
+import { removeOrder, selectOrder } from "src/redux/slices/order.slice";
 import { getTransportOrders } from "src/services/transportOrder.service";
 import { pageSize, primaryColor } from "src/util/constants";
 import { ButtonVariant, TransportOrderStatus } from "src/util/enums";
@@ -84,6 +84,28 @@ const OrderList = () => {
       });
   };
 
+  const handleFilterStatus = (item: { title: string; quantity: number }) => {
+    setSelected(item);
+    if (filterObj) {
+      if (item.title === "All")
+        setFilterObj({
+          page: 0,
+          pageSize,
+          branchId,
+          transporterId: userId,
+          status: undefined,
+        });
+      else
+        setFilterObj({
+          page: 0,
+          pageSize,
+          branchId,
+          transporterId: userId,
+          status: item.title as TransportOrderStatus,
+        });
+    }
+  };
+
   useEffect(() => {
     if (response && response.data) {
       const { items, ...rest } = response.data;
@@ -94,6 +116,8 @@ const OrderList = () => {
 
         setMetaData(rest);
       }
+
+      if (items.length === 0 && rest.page === 0) setOrderList([]);
     }
   }, [response]);
 
@@ -103,10 +127,14 @@ const OrderList = () => {
     orderList.forEach((item) => {
       clone.forEach((option) => {
         if (item.status === option.title) option.quantity += 1;
-        if (item.status === TransportOrderStatus.Delivering)
-          dispatch(selectOrder(item.id));
       });
     });
+
+    const foundDelivering = orderList.find(
+      (item) => item.status === TransportOrderStatus.Delivering
+    );
+    if (foundDelivering) dispatch(selectOrder(foundDelivering.id));
+    else dispatch(removeOrder());
 
     clone[0].quantity = orderList.length;
 
@@ -144,11 +172,11 @@ const OrderList = () => {
             <CurlButton
               title={`${formatStatus(item.title)} (${item.quantity})`}
               variant={
-                selected === item
+                selected.title === item.title
                   ? ButtonVariant.Contained
                   : ButtonVariant.Outlined
               }
-              options={{ onPress: () => setSelected(item) }}
+              options={{ onPress: () => handleFilterStatus(item) }}
             />
           )}
           contentContainerStyle={styles.content}

@@ -42,9 +42,7 @@ export default function Product(props: IProductCardProps) {
             <Text style={styles.text}>
               <Text style={styles.label}>Kim cương:</Text>{" "}
               {data.diamonds &&
-                `${
-                  data.diamonds[0].diamondSpecification.shape
-                } ${getDiamondSpec(data.diamonds[0].diamondSpecification)}`}
+                `${getDiamondSpec(data.diamonds[0].diamondSpecification)}`}
             </Text>
           </View>
 

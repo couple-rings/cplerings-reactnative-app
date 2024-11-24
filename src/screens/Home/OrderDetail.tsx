@@ -91,11 +91,12 @@ export default function OrderDetail() {
   const queryClient = useQueryClient();
 
   const { id: userId } = useAppSelector((state) => state.auth.userInfo);
-  const { orderVerified, imageUploaded } = useAppSelector(
+  const { orderVerified, imageUploaded, currentOrder } = useAppSelector(
     (state) => state.order
   );
 
   const navigation = useNavigation<NavigationProp<RootTabParamList>>();
+  const localNavigation = useNavigation<NavigationProp<HomeStackParamList>>();
 
   const { params } = useRoute<RouteProp<HomeStackParamList, "OrderDetail">>();
 
@@ -473,9 +474,8 @@ export default function OrderDetail() {
                 textColor={secondaryColor}
                 style={{ borderRadius: 10, marginBottom: 10 }}
                 onPress={() =>
-                  navigation.navigate("HomeStack", {
-                    screen: "UpdateStatus",
-                    params: { orderId: order?.id ?? 0 },
+                  localNavigation.navigate("UpdateStatus", {
+                    orderId: order?.id ?? 0,
                   })
                 }
               >
@@ -495,21 +495,22 @@ export default function OrderDetail() {
               />
             )}
 
-            {order?.status === TransportOrderStatus.OnGoing && (
-              <Button
-                title={"Bắt Đầu Giao"}
-                variant={ButtonVariant.Contained}
-                style={{ marginTop: 30, marginBottom: 60 }}
-                options={{
-                  onPress: () =>
-                    deliveryMutation.mutate({
-                      id: order.id,
-                      status: TransportOrderStatus.Delivering,
-                    }),
-                }}
-                loading={deliveryMutation.isPending}
-              />
-            )}
+            {order?.status === TransportOrderStatus.OnGoing &&
+              currentOrder === 0 && (
+                <Button
+                  title={"Bắt Đầu Giao"}
+                  variant={ButtonVariant.Contained}
+                  style={{ marginTop: 30, marginBottom: 60 }}
+                  options={{
+                    onPress: () =>
+                      deliveryMutation.mutate({
+                        id: order.id,
+                        status: TransportOrderStatus.Delivering,
+                      }),
+                  }}
+                  loading={deliveryMutation.isPending}
+                />
+              )}
 
             {order?.status === TransportOrderStatus.Delivering && (
               <>
@@ -542,9 +543,7 @@ export default function OrderDetail() {
                     textColor={secondaryColor}
                     icon={"barcode-scan"}
                     style={styles.step}
-                    onPress={() =>
-                      navigation.navigate("HomeStack", { screen: "Scan" })
-                    }
+                    onPress={() => localNavigation.navigate("Scan")}
                   >
                     <Text>Bước 1: Xác nhận CCCD khách hàng</Text>
                     {orderVerified && (

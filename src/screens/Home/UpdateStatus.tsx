@@ -140,7 +140,11 @@ export default function UpdateStatus() {
       </View>
 
       {order?.transportationNotes.map((item) => {
-        return <Status key={item.id} {...item} pressStatus={pressStatus} />;
+        return (
+          <View key={item.id} style={{ marginHorizontal: 16 }}>
+            <Status {...item} pressStatus={pressStatus} />
+          </View>
+        );
       })}
 
       {order?.transportationNotes.length === 0 && (
@@ -202,7 +206,6 @@ export default function UpdateStatus() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
   },
   list: {
     padding: 16,
