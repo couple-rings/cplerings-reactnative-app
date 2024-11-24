@@ -14,3 +14,15 @@ export const attachmentMimeType = [
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
+
+export const pageSize = 4;
+
+export const successConfirm =
+  "Bạn cần đảm bảo đơn hàng này đã được giao thành công, vì trạng thái đơn không thể thay đổi sau khi xác nhận.";
+
+export const failConfirm =
+  "Bạn cần đảm bảo đơn hàng này đã giao thất bại, vì trạng thái đơn không thể thay đổi sau khi xác nhận.";
+
+export const noteAcceptOrder = "Đã sắp xếp hàng lên xe";
+export const noteStartOrder = "Bắt đầu đến địa chỉ giao hàng";
+export const noteCompleteOrder = "Bắt đầu đến địa chỉ giao hàng";

@@ -1,3 +1,5 @@
+import { TransportOrderStatus } from "src/util/enums";
+
 export {};
 
 declare global {
@@ -26,6 +28,10 @@ declare global {
 
   interface IUpdateConversationRequest {
     userId: number;
+  }
+
+  interface ICreateConversationRequest {
+    participants: number[];
   }
 
   interface IUpdateMessageRequest {
@@ -68,5 +74,26 @@ declare global {
 
       mimetype: string;
     };
+  }
+
+  interface IFileRequest {
+    uri: string;
+
+    name: string;
+
+    type: string;
+  }
+
+  interface ITransportOrderFilter {
+    page: number;
+    pageSize: number;
+    transporterId?: number;
+    branchId?: number;
+    status?: TransportOrderStatus;
+  }
+
+  interface ICreateNoteRequest {
+    transportationOrderId: number;
+    note: string;
   }
 }

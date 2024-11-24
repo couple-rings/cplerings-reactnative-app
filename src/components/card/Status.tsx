@@ -2,16 +2,19 @@ import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { Avatar, Card } from "react-native-paper";
 import { secondaryColor } from "src/util/constants";
+import moment from "moment";
 
 export default function Status(props: IStatusCardProps) {
-  const { note, time, pressStatus } = props;
+  const { note, date, pressStatus } = props;
 
   return (
     <Card
       style={styles.container}
       onPress={() => pressStatus && pressStatus(note)}
     >
-      <Text style={styles.time}>{time}</Text>
+      <Text style={styles.time}>
+        {moment(date).format("HH:mm MMM Do YYYY")}
+      </Text>
       <View style={styles.content}>
         <Avatar.Icon
           size={32}
@@ -39,7 +42,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: secondaryColor,
     textAlign: "right",
-    marginBottom: 8,
+    marginBottom: 1,
   },
   content: {
     flexDirection: "row",

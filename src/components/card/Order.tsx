@@ -7,20 +7,31 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { secondaryColor } from "src/util/constants";
+import { formatStatus } from "src/util/functions";
 
 export default function Order(props: IOrderCardProps) {
-  const { address, name, phone, quantity, status } = props;
+  const { data } = props;
+
+  const {
+    receiverName,
+    receiverPhone,
+    deliveryAddress,
+    status,
+    customOrder,
+    orderNo,
+    id,
+  } = data;
 
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
 
   return (
     <Card
       style={styles.container}
-      onPress={() => navigation.navigate("OrderDetail", { id: 1 })}
+      onPress={() => navigation.navigate("OrderDetail", { id })}
     >
       <View style={styles.header}>
-        <Text style={styles.orderId}>#Order ID</Text>
-        <Text style={styles.status}>{status}</Text>
+        <Text style={styles.orderId}>#{orderNo}</Text>
+        <Text style={styles.status}>{formatStatus(status)}</Text>
       </View>
 
       <View style={styles.row}>
@@ -30,7 +41,7 @@ export default function Order(props: IOrderCardProps) {
           color={secondaryColor}
         />
         <Text style={styles.text}>
-          {name} / {phone}
+          {receiverName} / {receiverPhone}
         </Text>
       </View>
       <View style={styles.row}>
@@ -39,7 +50,9 @@ export default function Order(props: IOrderCardProps) {
           size={16}
           color={secondaryColor}
         />
-        <Text style={styles.text}>{address}</Text>
+        <Text style={{ ...styles.text, flex: 1 }} numberOfLines={1}>
+          {deliveryAddress}
+        </Text>
       </View>
       <View
         style={{
@@ -59,7 +72,7 @@ export default function Order(props: IOrderCardProps) {
 
         <TouchableOpacity style={styles.quantity}>
           <Entypo name="box" size={14} color={secondaryColor} />
-          <Text style={styles.text}>{quantity}</Text>
+          <Text style={styles.text}>{customOrder ? 2 : 0}</Text>
         </TouchableOpacity>
       </View>
     </Card>

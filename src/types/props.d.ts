@@ -1,4 +1,5 @@
 import { StyleProp, TouchableOpacityProps, ViewStyle } from "react-native";
+import { FailReason, ProductType } from "src/util/enums";
 
 export {};
 
@@ -19,20 +20,12 @@ declare global {
   interface ICurlButtonProps extends Omit<IButtonProps, "loading"> {}
 
   interface IOrderCardProps {
-    status: OrderStatus;
-    name: string;
-    phone: string;
-    address: string;
-    quantity: number;
+    data: ITransportOrder;
   }
 
   interface IProductCardProps {
-    name: string;
-    image: string | ImageSourcePropType;
-    size: number;
-    engraving: string;
-    metal: string;
-    diamond: string;
+    productType: ProductType;
+    data: IRing;
   }
 
   interface ICustomerCardProps {
@@ -46,6 +39,8 @@ declare global {
     setVisible: (v: boolean) => void;
     title: string;
     message: string;
+    reason?: FailReason;
+    note?: string;
   }
 
   interface IConversationProps {
@@ -89,7 +84,8 @@ declare global {
   }
 
   interface IStatusCardProps {
-    time: string;
+    id: number;
+    date: string;
     note: string;
     pressStatus?: (v: string) => void;
   }

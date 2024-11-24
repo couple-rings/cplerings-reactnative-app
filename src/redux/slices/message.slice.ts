@@ -8,7 +8,7 @@ const initialState: MessageState = {
   messagesList: [],
 };
 
-export const conversationSlice = createSlice({
+export const messageSlice = createSlice({
   name: "message",
   initialState,
   reducers: {
@@ -22,6 +22,6 @@ export const conversationSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { saveMessages, removeMessages } = conversationSlice.actions;
+export const { saveMessages, removeMessages } = messageSlice.actions;
 
-export default conversationSlice.reducer;
+export default messageSlice.reducer;

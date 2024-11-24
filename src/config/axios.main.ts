@@ -4,6 +4,8 @@ import { store } from "src/redux/store";
 import { postRefreshToken } from "src/services/auth.service";
 import { ErrorCode } from "src/util/enums";
 
+const publicRoute = ["auth/refresh", "auth/login"];
+
 const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 const instance = axios.create({
@@ -14,13 +16,12 @@ const instance = axios.create({
 instance.interceptors.request.use(
   function (config) {
     // Do something before request is sent
-    if (
-      config.url &&
-      config.url !== "auth/refresh" &&
-      config.url !== "auth/login"
-    ) {
-      const access_token = store.getState().auth.accessToken;
-      config.headers["Authorization"] = "Bearer " + access_token;
+    if (config.url) {
+      const path = config.url.split("?")[0];
+      if (!publicRoute.includes(path)) {
+        const access_token = store.getState().auth.accessToken;
+        config.headers["Authorization"] = "Bearer " + access_token;
+      }
     }
 
     return config;

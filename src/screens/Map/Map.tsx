@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, SafeAreaView, StyleSheet } from "react-native";
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StyleSheet,
+  View,
+} from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
 import Toast from "react-native-toast-message";
 import { socket } from "src/config/socket";
 import { primaryColor } from "src/util/constants";
 import MapViewDirections from "react-native-maps-directions";
+import { useAppSelector } from "src/util/hooks";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { fetchTransportOrderDetail } from "src/util/querykey";
+import { getTransportOrderDetail } from "src/services/transportOrder.service";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Map() {
+  const [order, setOrder] = useState<ITransportOrder | null>(null);
   const [myLocation, setMyLocation] =
     useState<Location.LocationObjectCoords | null>(null);
   const [destination, setDestination] = useState({
@@ -15,11 +26,36 @@ export default function Map() {
     longitude: 106.69069542954965,
   });
 
+  const navigation = useNavigation<NavigationProp<RootTabParamList>>();
+
+  const { currentOrder } = useAppSelector((state) => state.order);
+
+  const { data: orderResponse, isLoading } = useQuery({
+    queryKey: [fetchTransportOrderDetail, currentOrder],
+
+    queryFn: () => {
+      return getTransportOrderDetail(currentOrder);
+    },
+    enabled: currentOrder !== 0,
+  });
+
   useEffect(() => {
-    socket.emit("join_room_location", 1, (response: string) =>
+    if (!currentOrder || currentOrder === 0) {
+      navigation.navigate("HomeStack", { screen: "OrderList" });
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentOrder]);
+
+  useEffect(() => {
+    let id = 0;
+
+    if (order?.customOrder) id = order.customOrder.id;
+
+    socket.emit("join_room_location", id, (response: string) =>
       console.log(response)
     );
-  }, []);
+  }, [order]);
 
   useEffect(() => {
     (async () => {
@@ -39,19 +75,19 @@ export default function Map() {
 
   useEffect(() => {
     (async () => {
-      const coordinates = await Location.geocodeAsync(
-        "36/31 Nguyễn Gia Trí, Phường 25, Bình Thạnh, Hồ Chí Minh"
-      );
-      if (coordinates && coordinates.length > 0) {
-        console.log(coordinates);
+      if (order) {
+        const coordinates = await Location.geocodeAsync(order.deliveryAddress);
+        if (coordinates && coordinates.length > 0) {
+          console.log(coordinates);
 
-        setDestination({
-          latitude: coordinates[0].latitude,
-          longitude: coordinates[0].longitude,
-        });
+          setDestination({
+            latitude: coordinates[0].latitude,
+            longitude: coordinates[0].longitude,
+          });
+        }
       }
     })();
-  }, []);
+  }, [order]);
 
   useEffect(() => {
     const sub = Location.watchPositionAsync(
@@ -62,7 +98,7 @@ export default function Map() {
         socket.emit("location_update", {
           latitude,
           longitude,
-          orderId: 1,
+          orderId: order?.id,
         });
       }
     );
@@ -72,7 +108,20 @@ export default function Map() {
         .then((subscription) => subscription.remove())
         .catch((err) => console.log(err));
     };
-  }, []);
+  }, [order]);
+
+  useEffect(() => {
+    if (orderResponse?.data) {
+      setOrder(orderResponse.data.transportationOrder);
+    }
+  }, [orderResponse]);
+
+  if (isLoading || !order)
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size={50} color={primaryColor} />
+      </View>
+    );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -118,5 +167,10 @@ const styles = StyleSheet.create({
   map: {
     width: "100%",
     height: "100%",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
