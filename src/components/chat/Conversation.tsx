@@ -13,6 +13,7 @@ import { putUpdateMessage } from "src/services/message.service";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { useQueryClient } from "@tanstack/react-query";
+import { fetchConversations } from "src/util/querykey";
 
 const avatar = require("assets/male-icon.png");
 
@@ -51,7 +52,7 @@ export default function Conversation(props: IConversationProps) {
         await putUpdateMessage(latestMessage._id, { read: true });
 
       queryClient.invalidateQueries({
-        queryKey: ["fetchConversations", userId],
+        queryKey: [fetchConversations, userId],
       });
     }
 

@@ -2,34 +2,54 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { Card } from "react-native-paper";
 import { secondaryColor } from "src/util/constants";
+import { DesignCharacteristic, ProductType } from "src/util/enums";
+import { getDiamondSpec } from "src/util/functions";
 
 export default function Product(props: IProductCardProps) {
-  const { diamond, engraving, image, metal, name, size } = props;
+  const { productType, data } = props;
 
   return (
     <Card style={{ marginVertical: 10 }}>
       <View style={styles.container}>
         <Card style={{ height: 90, width: 90 }}>
-          <Image source={image} style={styles.image} />
+          {data.customDesign && (
+            <Image
+              source={{ uri: data.customDesign.designVersion.image.url }}
+              style={styles.image}
+            />
+          )}
         </Card>
 
         <View style={{ flex: 1 }}>
-          <Text style={styles.name}>{name}</Text>
+          {productType === ProductType.WeddingRing && data.customDesign && (
+            <Text style={styles.name}>
+              Nhẫn Cưới{" "}
+              {data.customDesign.designVersion.design.characteristic ===
+              DesignCharacteristic.Male
+                ? "Nam"
+                : "Nữ"}
+            </Text>
+          )}
+
           <View style={styles.row}>
             <Text style={styles.text}>
-              <Text style={styles.label}>Metal:</Text>
-              {metal}
-            </Text>
-            <Text style={styles.text}>
-              <Text style={styles.label}>Kim cương:</Text> {diamond}
+              <Text style={styles.label}>Chất liệu:</Text>
+              {data.metalSpecification.name}
             </Text>
           </View>
+
           <View style={styles.row}>
             <Text style={styles.text}>
-              <Text style={styles.label}>Khắc chữ:</Text> {engraving}
+              <Text style={styles.label}>Kim cương:</Text>{" "}
+              {data.diamonds &&
+                `${getDiamondSpec(data.diamonds[0].diamondSpecification)}`}
             </Text>
+          </View>
+
+          <View style={styles.row}>
             <Text style={styles.text}>
-              <Text style={styles.label}>Kích thước:</Text> {size}
+              <Text style={styles.label}>Khắc chữ:</Text>{" "}
+              {data.engraving ? data.engraving : "--"}
             </Text>
           </View>
         </View>
@@ -44,6 +64,7 @@ const styles = StyleSheet.create({
     gap: 16,
     backgroundColor: "white",
     padding: 12,
+    paddingRight: 24,
     borderRadius: 10,
   },
   image: {
@@ -67,6 +88,5 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 10,
     color: secondaryColor,
-    width: "50%",
   },
 });

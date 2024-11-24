@@ -5,7 +5,16 @@ import { UserRole } from "src/util/enums";
 export interface IInitState {
   isAuthenticated: boolean;
 
-  userInfo: IUser;
+  userInfo: {
+    id: number;
+    email: string;
+    username: string;
+    phone: string;
+    avatar: string;
+    branchId: number;
+    hasSpouse: boolean;
+    role: UserRole;
+  };
 
   accessToken: string;
 
@@ -20,7 +29,9 @@ export interface ILoginPayload {
   refreshToken: string;
 }
 
-export interface ISaveProfilePayload extends Partial<IProfileResponse> {}
+export interface ISaveProfilePayload extends Partial<IProfileResponse> {
+  hasSpouse: boolean;
+}
 
 export interface ISaveTokenPayload extends IRefreshTokenResponse {}
 
@@ -33,6 +44,7 @@ const initialState: IInitState = {
     username: "",
     phone: "",
     avatar: "",
+    branchId: 0,
     hasSpouse: false,
     role: UserRole.Default,
   },
@@ -60,10 +72,17 @@ export const authSlice = createSlice({
       state.refreshToken = "";
     },
     saveProfile: (state, { payload }: PayloadAction<ISaveProfilePayload>) => {
-      const { phone, avatar, ...rest } = payload;
-      if (phone) state.userInfo.phone = phone;
-      if (avatar) state.userInfo.avatar = avatar;
-      state.userInfo = { ...state.userInfo, ...rest };
+      const { hasSpouse, account } = payload;
+
+      if (account) {
+        const { phone, avatar, branch, ...rest } = account;
+
+        if (phone) state.userInfo.phone = phone;
+        if (avatar) state.userInfo.avatar = avatar;
+        if (branch) state.userInfo.branchId = branch.id;
+
+        state.userInfo = { ...state.userInfo, hasSpouse, ...rest };
+      } else state.userInfo = { ...state.userInfo, hasSpouse };
     },
     saveToken: (state, { payload }: PayloadAction<ISaveTokenPayload>) => {
       const { refreshToken, token: accessToken } = payload;

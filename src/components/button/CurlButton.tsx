@@ -38,10 +38,12 @@ const styles = StyleSheet.create({
     color: primaryColor,
     textAlign: "center",
     fontSize: 16,
+    textTransform: "capitalize",
   },
   outlinedText: {
     color: "white",
     textAlign: "center",
     fontSize: 16,
+    textTransform: "capitalize",
   },
 });

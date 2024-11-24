@@ -48,12 +48,12 @@ const styles = StyleSheet.create({
   containedText: {
     color: "white",
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 16,
   },
   outlinedText: {
     color: primaryColor,
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 16,
   },
   loading: {
     opacity: 0.5,

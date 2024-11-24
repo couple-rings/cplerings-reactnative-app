@@ -18,3 +18,10 @@ export const putUpdateConversation = (
     data
   );
 };
+
+export const postCreateConversation = (data: ICreateConversationRequest) => {
+  return axios.post<unknown, ISecondaryResponse<IConversation>>(
+    `conversations`,
+    data
+  );
+};
