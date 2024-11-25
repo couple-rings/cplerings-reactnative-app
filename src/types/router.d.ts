@@ -30,7 +30,7 @@ declare global {
 
     OrderDetail: { id: number };
 
-    Scan: undefined;
+    Scan: { customerId: number };
 
     UpdateStatus: { orderId: number };
   };
