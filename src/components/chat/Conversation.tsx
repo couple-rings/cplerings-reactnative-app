@@ -56,7 +56,7 @@ export default function Conversation(props: IConversationProps) {
       });
     }
 
-    navigation.navigate("Chat");
+    navigation.navigate("Chat", { conversationId: conversation._id });
   };
 
   const renderLatestMsg = (message: IMessage | undefined) => {
@@ -115,13 +115,22 @@ export default function Conversation(props: IConversationProps) {
       style={styles.container}
       onPress={handleClickConversation}
     >
-      <Image source={avatar} style={styles.avatar} />
+      {conversation.partner?.avatar ? (
+        <Image
+          source={{ uri: conversation.partner.avatar }}
+          style={styles.avatar}
+        />
+      ) : (
+        <Image source={avatar} style={styles.avatar} />
+      )}
 
       <View style={{ flex: 1, justifyContent: "space-between" }}>
         <View>
           <View style={styles.upper}>
             <Text style={styles.name}>
-              {conversation.participants.find((user) => user !== userId)}
+              {conversation.partner
+                ? conversation.partner.username
+                : "Anonymous"}
             </Text>
 
             {notificationList.includes(conversation._id) && (

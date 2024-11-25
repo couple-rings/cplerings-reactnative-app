@@ -26,6 +26,12 @@ declare global {
     userId: number;
   }
 
+  interface IConversationDetailRequest {
+    userId: number;
+
+    conversationId: string;
+  }
+
   interface IUpdateConversationRequest {
     userId: number;
   }

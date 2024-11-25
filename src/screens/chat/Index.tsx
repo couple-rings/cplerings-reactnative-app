@@ -18,6 +18,7 @@ import { primaryColor } from "src/util/constants";
 import { socket } from "src/config/socket";
 import { saveNotifications } from "src/redux/slices/conversation.slice";
 import { fetchConversations } from "src/util/querykey";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 export default function ConversationList() {
   const [firstRender, setFirstRender] = useState(true);
@@ -25,10 +26,14 @@ export default function ConversationList() {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
 
+  const navigation = useNavigation<NavigationProp<ChatStackParamList>>();
+
   const { id: userId } = useAppSelector((state) => state.auth.userInfo);
   const { notificationList, currentConversation } = useAppSelector(
     (state) => state.conversation
   );
+
+  const { _id } = currentConversation;
 
   const { data: response, isLoading } = useQuery({
     queryKey: [fetchConversations, userId],
@@ -96,6 +101,14 @@ export default function ConversationList() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentConversation, notificationList]);
+
+  useEffect(() => {
+    if (_id) {
+      navigation.navigate("Chat", { conversationId: _id });
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_id]);
 
   return (
     <SafeAreaView style={styles.container}>

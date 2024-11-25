@@ -9,6 +9,14 @@ export const getConversations = (queryObj: IConversationFilter) => {
   );
 };
 
+export const getConversationDetail = (queryObj: IConversationDetailRequest) => {
+  const queryUrl = queryString.stringify(queryObj);
+
+  return axios.get<unknown, ISecondaryResponse<IConversation>>(
+    `conversations/detail?${queryUrl}`
+  );
+};
+
 export const putUpdateConversation = (
   id: string,
   data: IUpdateConversationRequest

@@ -38,7 +38,7 @@ declare global {
   type ChatStackParamList = {
     ConversationList: undefined;
 
-    Chat: undefined;
+    Chat: { conversationId: string };
   };
 
   type SettingStackParamList = {

@@ -8,11 +8,10 @@ const Stack = createNativeStackNavigator<ChatStackParamList>();
 
 function ChatStackRouter() {
   const { currentConversation } = useAppSelector((state) => state.conversation);
-  const { id } = useAppSelector((state) => state.auth.userInfo);
 
-  const chatPartnerId = currentConversation.participants.find(
-    (item) => item !== id
-  );
+  const name = currentConversation.partner
+    ? currentConversation.partner.username
+    : "Anonymous";
 
   return (
     <Stack.Navigator
@@ -37,7 +36,7 @@ function ChatStackRouter() {
         name="Chat"
         component={Chat}
         options={{
-          title: `${chatPartnerId}`,
+          title: `${name}`,
         }}
       />
     </Stack.Navigator>
