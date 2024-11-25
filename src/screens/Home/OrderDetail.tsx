@@ -548,7 +548,13 @@ export default function OrderDetail() {
                     textColor={secondaryColor}
                     icon={"barcode-scan"}
                     style={styles.step}
-                    onPress={() => localNavigation.navigate("Scan")}
+                    onPress={() =>
+                      localNavigation.navigate("Scan", {
+                        customerId: order.customOrder
+                          ? order.customOrder.customer.id
+                          : 0,
+                      })
+                    }
                   >
                     <Text>Bước 1: Xác nhận CCCD khách hàng</Text>
                     {orderVerified && (
