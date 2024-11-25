@@ -30,7 +30,7 @@ declare global {
 
     OrderDetail: { id: number };
 
-    Scan: undefined;
+    Scan: { customerId: number };
 
     UpdateStatus: { orderId: number };
   };
@@ -38,7 +38,7 @@ declare global {
   type ChatStackParamList = {
     ConversationList: undefined;
 
-    Chat: undefined;
+    Chat: { conversationId: string };
   };
 
   type SettingStackParamList = {

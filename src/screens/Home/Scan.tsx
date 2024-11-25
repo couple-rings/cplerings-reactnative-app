@@ -12,7 +12,12 @@ import Button from "src/components/button/Button";
 import { primaryColor } from "src/util/constants";
 import { ButtonVariant, IdReadingResponseCode } from "src/util/enums";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import { useMutation } from "@tanstack/react-query";
 import { postIdReading } from "src/services/fpt.service";
 import Toast from "react-native-toast-message";
@@ -29,6 +34,9 @@ export default function Scan() {
 
   const { currentOrder } = useAppSelector((state) => state.order);
 
+  const { params } = useRoute<RouteProp<HomeStackParamList, "Scan">>();
+  const { customerId } = params;
+
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
 
   const idReadMutation = useMutation({
@@ -38,7 +46,7 @@ export default function Scan() {
     onSuccess: (response) => {
       if (response.errorCode === IdReadingResponseCode.Success) {
         if (response.data.length > 0)
-          verifyMutation.mutate(response.data[0].id);
+          verifyMutation.mutate({ citizenId: response.data[0].id, customerId });
       } else {
         Toast.show({
           type: "error",
@@ -49,8 +57,8 @@ export default function Scan() {
   });
 
   const verifyMutation = useMutation({
-    mutationFn: (citizenId: string) => {
-      return getVerifySpouse(citizenId);
+    mutationFn: (data: { citizenId: string; customerId: number }) => {
+      return getVerifySpouse(data.citizenId, { customerId: data.customerId });
     },
     onSuccess: (response) => {
       if (response.data) {

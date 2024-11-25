@@ -56,7 +56,6 @@ import {
 } from "src/services/conversation.service";
 import Toast from "react-native-toast-message";
 import { useAppDispatch, useAppSelector } from "src/util/hooks";
-import { selectConversation } from "src/redux/slices/conversation.slice";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   fetchConversations,
@@ -75,6 +74,7 @@ import { selectOrder, verifyUpload } from "src/redux/slices/order.slice";
 import * as ImagePicker from "expo-image-picker";
 import { appendDataTypeBase64 } from "src/util/functions";
 import { postUploadFile } from "src/services/file.service";
+import { selectConversation } from "src/redux/slices/conversation.slice";
 
 interface Inputs {
   note: string;
@@ -302,15 +302,20 @@ export default function OrderDetail() {
       });
 
       if (res.data && conversationResponse?.data) {
-        const rooms = conversationResponse.data.map(
+        const conversationIds = conversationResponse.data.map(
           (conversation) => conversation._id
         );
-        socket.emit("join_room", [...rooms, res.data._id], (response: string) =>
+
+        let rooms = [];
+        if (conversationIds.includes(res.data._id)) rooms = conversationIds;
+        else rooms = [...conversationIds, res.data._id];
+
+        socket.emit("join_room", rooms, (response: string) =>
           console.log(response)
         );
 
         dispatch(selectConversation(res.data));
-        navigation.navigate("ChatStack", { screen: "Chat" });
+        navigation.navigate("ChatStack", { screen: "ConversationList" });
       }
     }
   };
@@ -543,7 +548,13 @@ export default function OrderDetail() {
                     textColor={secondaryColor}
                     icon={"barcode-scan"}
                     style={styles.step}
-                    onPress={() => localNavigation.navigate("Scan")}
+                    onPress={() =>
+                      localNavigation.navigate("Scan", {
+                        customerId: order.customOrder
+                          ? order.customOrder.customer.id
+                          : 0,
+                      })
+                    }
                   >
                     <Text>Bước 1: Xác nhận CCCD khách hàng</Text>
                     {orderVerified && (

@@ -21,14 +21,19 @@ import {
 } from "src/util/constants";
 import {
   NavigationProp,
+  RouteProp,
   useFocusEffect,
   useNavigation,
+  useRoute,
 } from "@react-navigation/native";
 import { socket } from "src/config/socket";
-import { unSelectConversation } from "src/redux/slices/conversation.slice";
+import {
+  selectConversation,
+  unSelectConversation,
+} from "src/redux/slices/conversation.slice";
 import { IconButton, TextInput } from "react-native-paper";
 import moment from "moment";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { Buffer } from "buffer";
 import { FileType } from "src/util/enums";
@@ -39,7 +44,8 @@ import {
 } from "src/services/file.service";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
-import { fetchConversations } from "src/util/querykey";
+import { fetchConversationDetail, fetchConversations } from "src/util/querykey";
+import { getConversationDetail } from "src/services/conversation.service";
 
 export default function Chat() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,9 +61,18 @@ export default function Chat() {
 
   const { id: userId } = useAppSelector((state) => state.auth.userInfo);
   const { messagesList } = useAppSelector((state) => state.message);
-  const { currentConversation } = useAppSelector((state) => state.conversation);
+  const { params } = useRoute<RouteProp<ChatStackParamList, "Chat">>();
 
-  const { _id } = currentConversation;
+  const { conversationId: _id } = params;
+
+  const { data: response } = useQuery({
+    queryKey: [fetchConversationDetail, _id],
+
+    queryFn: () => {
+      if (_id) return getConversationDetail({ userId, conversationId: _id });
+    },
+    enabled: !!_id,
+  });
 
   const imageMutation = useMutation({
     mutationFn: (data: IUploadImageRequest) => {
@@ -282,6 +297,14 @@ export default function Chat() {
         tabBarStyle: undefined,
       });
   }, [navigation]);
+
+  useEffect(() => {
+    if (response?.data) {
+      dispatch(selectConversation(response.data));
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [response]);
 
   useFocusEffect(
     React.useCallback(() => {

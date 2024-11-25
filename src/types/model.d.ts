@@ -84,6 +84,8 @@ declare global {
     latestMessage?: IMessage;
 
     notifiedUsers?: number[];
+
+    partner?: IUser;
   }
 
   interface IMetalSpec {
