@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
@@ -56,7 +56,6 @@ const OrderList = () => {
   const [orderList, setOrderList] = useState<ITransportOrder[]>([]);
   const [selected, setSelected] = useState(initOption[0]);
 
-  const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
 
   const { branchId, id: userId } = useAppSelector(
@@ -152,14 +151,6 @@ const OrderList = () => {
       });
     }
   }, [branchId, userId]);
-
-  useEffect(() => {
-    queryClient.invalidateQueries({
-      queryKey: [fetchTransportOrders, filterObj],
-    });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterObj]);
 
   return (
     <View style={styles.container}>

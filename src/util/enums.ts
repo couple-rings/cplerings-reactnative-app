@@ -47,7 +47,7 @@ export enum TransportOrderStatus {
   Delivering = "DELIVERING",
   Rejected = "REJECTED",
   Completed = "COMPLETED",
-  Failed = "FAILED",
+  Redelivering = "REDELIVERING",
 }
 
 export enum CustomOrderStatus {
@@ -94,4 +94,12 @@ export enum IdReadingResponseCode {
   InvalidParams = 1,
   InvalidFileFormat = 7,
   InvalidImage = 3,
+}
+
+export enum StandardOrderStatus {
+  Pending = "PENDING",
+  Paid = "PAID",
+  Delivering = "DELIVERING",
+  Completed = "COMPLETED",
+  Canceled = "CANCELLED",
 }

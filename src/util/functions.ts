@@ -23,7 +23,23 @@ export const formatStatus = (status: TransportOrderStatus | string) => {
 
   if (status === TransportOrderStatus.Delivering) return "Đang Giao";
 
+  if (status === TransportOrderStatus.Redelivering) return "Chờ Giao Lại";
+
   return "Hoàn Thành";
+};
+
+export const formatStatusColor = (status: TransportOrderStatus | string) => {
+  if (status === TransportOrderStatus.Waiting) return "#f1c40f";
+
+  if (status === TransportOrderStatus.Rejected) return "#e74c3c";
+
+  if (status === TransportOrderStatus.OnGoing) return "#f1c40f";
+
+  if (status === TransportOrderStatus.Delivering) return "#3498db";
+
+  if (status === TransportOrderStatus.Redelivering) return "#f1c40f";
+
+  return "#07bc0c";
 };
 
 export const getDiamondSpec = (item: IDiamondSpec) => {

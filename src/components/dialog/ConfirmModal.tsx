@@ -86,10 +86,10 @@ export default function ConfirmModal(props: IConfirmModalProps) {
             text1: "Xác nhận đơn hàng bị từ chối",
           });
 
-        if (request.status === TransportOrderStatus.Waiting)
+        if (request.status === TransportOrderStatus.Redelivering)
           Toast.show({
             type: "info",
-            text1: "Đã chuyển đơn hàng về trạng thái chờ",
+            text1: "Đã chuyển đơn hàng về trạng thái chờ giao lại",
           });
 
         dispatch(removeOrder());
@@ -136,7 +136,7 @@ export default function ConfirmModal(props: IConfirmModalProps) {
       noteMutation.mutate({ transportationOrderId: currentOrder, note });
       cancelMutation.mutate({
         id: currentOrder,
-        status: TransportOrderStatus.Waiting,
+        status: TransportOrderStatus.Redelivering,
       });
       setVisible(false);
     }

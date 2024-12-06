@@ -25,7 +25,8 @@ declare global {
 
   interface IProductCardProps {
     productType: ProductType;
-    data: IRing;
+    ring?: IRing;
+    jewelry?: IStandardOrderItem;
   }
 
   interface ICustomerCardProps {

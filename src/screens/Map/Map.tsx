@@ -51,6 +51,7 @@ export default function Map() {
     let id = 0;
 
     if (order?.customOrder) id = order.customOrder.id;
+    if (order?.standardOrder) id = order.standardOrder.id;
 
     socket.emit("join_room_location", id, (response: string) =>
       console.log(response)
@@ -95,10 +96,14 @@ export default function Map() {
       (location) => {
         const { latitude, longitude } = location.coords;
 
+        let orderId = 0;
+        if (order?.customOrder) orderId = order.customOrder.id;
+        if (order?.standardOrder) orderId = order.standardOrder.id;
+
         socket.emit("location_update", {
           latitude,
           longitude,
-          orderId: order?.id,
+          orderId,
         });
       }
     );
