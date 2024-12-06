@@ -3,7 +3,7 @@
     "name": "coupleringapp",
     "slug": "coupleringapp",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -12,22 +12,19 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "config": {
-        "googleMapsApiKey": ""
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "couplerings.app",
       "config": {
         "googleMaps": {
-          "apiKey": ""
+          "apiKey": "AIzaSyAv-TAU1V7_3KXdCdvlBsUaYnUPzZaKNqo"
         }
-      }
+      },
+      "package": "couplerings.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -41,7 +38,20 @@
         {
           "isAndroidForegroundServiceEnabled": true
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "04957542-4378-4b25-b514-5fdf936103aa"
+      }
+    }
   }
 }

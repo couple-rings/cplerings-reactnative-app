@@ -49,6 +49,7 @@ instance.interceptors.response.use(
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // Do something with response error
     const status = error.response?.status || 500;
+    console.log(status);
     // we can handle global errors here
     switch (status) {
       // generic api error (server related) unexpected
