@@ -21,7 +21,7 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyAv-TAU1V7_3KXdCdvlBsUaYnUPzZaKNqo"
+          "apiKey": ""
         }
       },
       "package": "couplerings.app"
