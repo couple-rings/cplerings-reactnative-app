@@ -3,6 +3,7 @@ import {
   DesignCharacteristic,
   GoldColor,
   RingStatus,
+  StandardOrderStatus,
   TransportOrderStatus,
   UserRole,
   VersionOwner,
@@ -135,6 +136,8 @@ declare global {
       url: string;
     };
 
+    jewelryCategory: IJewelryCategory;
+
     characteristic: DesignCharacteristic;
 
     size: number;
@@ -158,6 +161,10 @@ declare global {
     }[];
 
     designCollection: ICollection;
+
+    createdAt: string;
+
+    state: Status;
   }
 
   interface IDesignVersion {
@@ -259,6 +266,37 @@ declare global {
     createdAt: string;
   }
 
+  interface IStandardOrderItem {
+    id: number;
+    jewelry?: IJewelry;
+    branch: IBranch;
+    design: IDesign;
+    metalSpecification: IMetalSpec;
+    price: {
+      amount: number;
+    };
+  }
+
+  interface IStatusHistory<T> {
+    id: number;
+    status: T;
+    createdAt: string;
+  }
+
+  interface IStandardOrder {
+    id: number;
+    customer: IUser;
+    orderNo: string;
+    totalPrice: {
+      amount: number;
+    };
+    status: StandardOrderStatus;
+    standardOrderHistories: IStatusHistory<StandardOrderStatus>[];
+    transportationOrders: ITransportOrder[];
+    standardOrderItems: IStandardOrderItem[];
+    createdAt: string;
+  }
+
   interface ITransportOrder {
     id: number;
     orderNo: string;
@@ -267,8 +305,10 @@ declare global {
     receiverPhone: string;
     deliveryAddress: string;
     customOrder?: ICustomOrder;
+    standardOrder?: IStandardOrder;
     transporter: IUser;
     transportationNotes: ITransportNote[];
+    transportOrderHistories: IStatusHistory<TransportOrderStatus>[];
   }
 
   interface ITransportNote {

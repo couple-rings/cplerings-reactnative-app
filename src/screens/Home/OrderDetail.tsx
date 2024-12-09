@@ -60,7 +60,6 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   fetchConversations,
   fetchTransportOrderDetail,
-  fetchTransportOrders,
 } from "src/util/querykey";
 import { socket } from "src/config/socket";
 import {
@@ -72,9 +71,10 @@ import {
 } from "src/services/transportOrder.service";
 import { selectOrder, verifyUpload } from "src/redux/slices/order.slice";
 import * as ImagePicker from "expo-image-picker";
-import { appendDataTypeBase64 } from "src/util/functions";
+import { appendDataTypeBase64, formatStatus } from "src/util/functions";
 import { postUploadFile } from "src/services/file.service";
 import { selectConversation } from "src/redux/slices/conversation.slice";
+import moment from "moment";
 
 interface Inputs {
   note: string;
@@ -150,12 +150,9 @@ export default function OrderDetail() {
           transportationOrderId: id,
           note: noteAcceptOrder,
         });
-        queryClient.invalidateQueries({
-          queryKey: [fetchTransportOrders],
-        });
         Toast.show({
           type: "success",
-          text1: "Đã nhận đơn này",
+          text1: "Đã xác nhận giao đơn",
         });
         navigation.navigate("HomeStack", { screen: "OrderList" });
       }
@@ -180,9 +177,6 @@ export default function OrderDetail() {
         noteMutation.mutate({
           transportationOrderId: id,
           note: noteStartOrder,
-        });
-        queryClient.invalidateQueries({
-          queryKey: [fetchTransportOrders],
         });
         Toast.show({
           type: "success",
@@ -280,7 +274,7 @@ export default function OrderDetail() {
     setOpenConfirmFail(true);
   };
 
-  const getProducts = () => {
+  const getRings = () => {
     if (order) {
       const { customOrder } = order;
 
@@ -289,13 +283,23 @@ export default function OrderDetail() {
 
     return [];
   };
+  const getJewelries = () => {
+    if (order) {
+      const { standardOrder } = order;
+
+      if (standardOrder) return standardOrder.standardOrderItems;
+    }
+
+    return [];
+  };
 
   const handlePressChat = async () => {
     if (order) {
-      const { customOrder } = order;
+      const { customOrder, standardOrder } = order;
 
       let customerId = 0;
       if (customOrder) customerId = customOrder.customer.id;
+      if (standardOrder) customerId = standardOrder.customer.id;
 
       const res = await chatMutation.mutateAsync({
         participants: [userId, customerId],
@@ -374,6 +378,26 @@ export default function OrderDetail() {
         </View>
 
         <View style={styles.body}>
+          {order && (
+            <View
+              style={{
+                marginTop: 16,
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={styles.text}>{formatStatus(order.status)}</Text>
+
+              <Text style={styles.text}>
+                {moment(
+                  order.transportOrderHistories.find(
+                    (item) => item.status === order.status
+                  )?.createdAt
+                ).format("DD/MM/YYYY HH:mm")}
+              </Text>
+            </View>
+          )}
+
           <View
             style={{
               marginTop: 16,
@@ -384,6 +408,7 @@ export default function OrderDetail() {
             <MaterialIcons name="my-library-books" size={20} color="black" />
             <Text style={styles.title}>
               Loại đơn: {order?.customOrder && "Đơn mua nhẫn cưới"}
+              {order?.standardOrder && "Đơn mua trang sức"}
             </Text>
           </View>
 
@@ -391,19 +416,36 @@ export default function OrderDetail() {
             <View style={{ ...styles.head, marginBottom: 8 }}>
               <Entypo name="box" size={20} color={secondaryColor} />
               <Text style={styles.title}>
-                Hàng Giao ({getProducts().length})
+                Hàng Giao ({getRings().length > 0 && getRings().length}
+                {getJewelries().length > 0 && getJewelries().length})
               </Text>
             </View>
 
-            {getProducts().map((item, index) => {
-              let productType = ProductType.Jewelry;
+            {order?.customOrder &&
+              getRings().map((item) => {
+                const productType = ProductType.WeddingRing;
 
-              if (item.customDesign) productType = ProductType.WeddingRing;
+                return (
+                  <Product
+                    key={item.id}
+                    productType={productType}
+                    ring={item}
+                  />
+                );
+              })}
 
-              return (
-                <Product key={item.id} productType={productType} data={item} />
-              );
-            })}
+            {order?.standardOrder &&
+              getJewelries().map((item) => {
+                const productType = ProductType.Jewelry;
+
+                return (
+                  <Product
+                    key={item.id}
+                    productType={productType}
+                    jewelry={item}
+                  />
+                );
+              })}
           </View>
 
           <View>
@@ -492,7 +534,17 @@ export default function OrderDetail() {
           <View>
             {order?.status === TransportOrderStatus.Waiting && (
               <Button
-                title={"Nhận Đơn"}
+                title={"Giao Đơn Này"}
+                variant={ButtonVariant.Contained}
+                style={{ marginTop: 30, marginBottom: 60 }}
+                options={{ onPress: () => acceptMutation.mutate([order.id]) }}
+                loading={acceptMutation.isPending}
+              />
+            )}
+
+            {order?.status === TransportOrderStatus.Redelivering && (
+              <Button
+                title={"Giao Đơn Này"}
                 variant={ButtonVariant.Contained}
                 style={{ marginTop: 30, marginBottom: 60 }}
                 options={{ onPress: () => acceptMutation.mutate([order.id]) }}
@@ -548,13 +600,17 @@ export default function OrderDetail() {
                     textColor={secondaryColor}
                     icon={"barcode-scan"}
                     style={styles.step}
-                    onPress={() =>
+                    onPress={() => {
+                      const { customOrder, standardOrder } = order;
+
+                      let customerId = 0;
+                      if (customOrder) customerId = customOrder.customer.id;
+                      if (standardOrder) customerId = standardOrder.customer.id;
+
                       localNavigation.navigate("Scan", {
-                        customerId: order.customOrder
-                          ? order.customOrder.customer.id
-                          : 0,
-                      })
-                    }
+                        customerId,
+                      });
+                    }}
                   >
                     <Text>Bước 1: Xác nhận CCCD khách hàng</Text>
                     {orderVerified && (
@@ -763,5 +819,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  text: {
+    color: secondaryColor,
   },
 });

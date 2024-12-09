@@ -48,10 +48,6 @@ export default function ConfirmModal(props: IConfirmModalProps) {
     },
     onSuccess: (response) => {
       if (response.data) {
-        noteMutation.mutate({
-          transportationOrderId: currentOrder,
-          note: noteCompleteOrder,
-        });
         queryClient.invalidateQueries({
           queryKey: [fetchTransportOrders],
         });
@@ -80,7 +76,6 @@ export default function ConfirmModal(props: IConfirmModalProps) {
     },
     onSuccess: (response, request) => {
       if (response.data && note) {
-        noteMutation.mutate({ transportationOrderId: currentOrder, note });
         queryClient.invalidateQueries({
           queryKey: [fetchTransportOrders],
         });
@@ -91,10 +86,10 @@ export default function ConfirmModal(props: IConfirmModalProps) {
             text1: "Xác nhận đơn hàng bị từ chối",
           });
 
-        if (request.status === TransportOrderStatus.Waiting)
+        if (request.status === TransportOrderStatus.Redelivering)
           Toast.show({
             type: "info",
-            text1: "Đã chuyển đơn hàng về trạng thái chờ",
+            text1: "Đã chuyển đơn hàng về trạng thái chờ giao lại",
           });
 
         dispatch(removeOrder());
@@ -116,14 +111,20 @@ export default function ConfirmModal(props: IConfirmModalProps) {
 
   const handleConfirm = () => {
     if (currentOrder !== 0 && !reason) {
+      noteMutation.mutate({
+        transportationOrderId: currentOrder,
+        note: noteCompleteOrder,
+      });
       completeMutation.mutate({
         id: currentOrder,
         status: TransportOrderStatus.Completed,
       });
+
       setVisible(false);
     }
 
-    if (currentOrder !== 0 && reason === FailReason.Rejected) {
+    if (currentOrder !== 0 && reason === FailReason.Rejected && note) {
+      noteMutation.mutate({ transportationOrderId: currentOrder, note });
       cancelMutation.mutate({
         id: currentOrder,
         status: TransportOrderStatus.Rejected,
@@ -131,10 +132,11 @@ export default function ConfirmModal(props: IConfirmModalProps) {
       setVisible(false);
     }
 
-    if (currentOrder !== 0 && reason === FailReason.NotMet) {
+    if (currentOrder !== 0 && reason === FailReason.NotMet && note) {
+      noteMutation.mutate({ transportationOrderId: currentOrder, note });
       cancelMutation.mutate({
         id: currentOrder,
-        status: TransportOrderStatus.Waiting,
+        status: TransportOrderStatus.Redelivering,
       });
       setVisible(false);
     }

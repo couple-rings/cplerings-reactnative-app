@@ -7,7 +7,8 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Entypo from "@expo/vector-icons/Entypo";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { secondaryColor } from "src/util/constants";
-import { formatStatus } from "src/util/functions";
+import { formatStatus, formatStatusColor } from "src/util/functions";
+import moment from "moment";
 
 export default function Order(props: IOrderCardProps) {
   const { data } = props;
@@ -20,6 +21,8 @@ export default function Order(props: IOrderCardProps) {
     customOrder,
     orderNo,
     id,
+    standardOrder,
+    transportOrderHistories,
   } = data;
 
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
@@ -31,8 +34,19 @@ export default function Order(props: IOrderCardProps) {
     >
       <View style={styles.header}>
         <Text style={styles.orderId}>#{orderNo}</Text>
-        <Text style={styles.status}>{formatStatus(status)}</Text>
+
+        <Text style={{ ...styles.status, color: formatStatusColor(status) }}>
+          {formatStatus(status)}
+        </Text>
       </View>
+
+      <Text style={styles.time}>
+        Cập Nhật:{" "}
+        {moment(
+          transportOrderHistories.find((item) => item.status === status)
+            ?.createdAt
+        ).format("DD/MM/YYY HH:mm")}
+      </Text>
 
       <View style={styles.row}>
         <MaterialCommunityIcons
@@ -72,7 +86,10 @@ export default function Order(props: IOrderCardProps) {
 
         <TouchableOpacity style={styles.quantity}>
           <Entypo name="box" size={14} color={secondaryColor} />
-          <Text style={styles.text}>{customOrder ? 2 : 0}</Text>
+          <Text style={styles.text}>
+            {customOrder && 2}
+            {standardOrder && standardOrder.standardOrderItems.length}
+          </Text>
         </TouchableOpacity>
       </View>
     </Card>
@@ -89,7 +106,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 8,
+    marginBottom: 6,
+  },
+  time: {
+    fontSize: 12,
+    color: secondaryColor,
+    marginBottom: 6,
   },
   row: {
     flexDirection: "row",

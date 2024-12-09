@@ -1,6 +1,7 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFocusEffect } from "@react-navigation/native";
+import { useQuery } from "@tanstack/react-query";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 import { ActivityIndicator, Text } from "react-native-paper";
 import CurlButton from "src/components/button/CurlButton";
@@ -24,6 +25,10 @@ const initOption = [
   },
   {
     title: TransportOrderStatus.OnGoing,
+    quantity: 0,
+  },
+  {
+    title: TransportOrderStatus.Redelivering,
     quantity: 0,
   },
   {
@@ -56,12 +61,9 @@ const OrderList = () => {
   const [orderList, setOrderList] = useState<ITransportOrder[]>([]);
   const [selected, setSelected] = useState(initOption[0]);
 
-  const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
 
-  const { branchId, id: userId } = useAppSelector(
-    (state) => state.auth.userInfo
-  );
+  const { id: userId } = useAppSelector((state) => state.auth.userInfo);
 
   const { data: response, isLoading } = useQuery({
     queryKey: [fetchTransportOrders, filterObj],
@@ -91,7 +93,6 @@ const OrderList = () => {
         setFilterObj({
           page: 0,
           pageSize,
-          branchId,
           transporterId: userId,
           status: undefined,
         });
@@ -99,7 +100,6 @@ const OrderList = () => {
         setFilterObj({
           page: 0,
           pageSize,
-          branchId,
           transporterId: userId,
           status: item.title as TransportOrderStatus,
         });
@@ -117,7 +117,10 @@ const OrderList = () => {
         setMetaData(rest);
       }
 
-      if (items.length === 0 && rest.page === 0) setOrderList([]);
+      if (items.length === 0 && rest.page === 0) {
+        setOrderList([]);
+        setMetaData(initMetaData);
+      }
     }
   }, [response]);
 
@@ -143,23 +146,24 @@ const OrderList = () => {
   }, [orderList]);
 
   useEffect(() => {
-    if (branchId !== 0) {
+    setFilterObj({
+      page: 0,
+      pageSize,
+      transporterId: userId,
+    });
+  }, [userId]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setSelected(initOption[0]);
       setFilterObj({
         page: 0,
         pageSize,
-        branchId,
         transporterId: userId,
+        status: undefined,
       });
-    }
-  }, [branchId, userId]);
-
-  useEffect(() => {
-    queryClient.invalidateQueries({
-      queryKey: [fetchTransportOrders, filterObj],
-    });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterObj]);
+    }, [userId])
+  );
 
   return (
     <View style={styles.container}>
@@ -170,7 +174,7 @@ const OrderList = () => {
           data={options}
           renderItem={({ item }) => (
             <CurlButton
-              title={`${formatStatus(item.title)} (${item.quantity})`}
+              title={`${formatStatus(item.title)}`}
               variant={
                 selected.title === item.title
                   ? ButtonVariant.Contained
@@ -193,6 +197,13 @@ const OrderList = () => {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.empty}>Hiện không có đơn nào</Text>
+            </View>
+          }
+          ListHeaderComponent={
+            <View style={{ marginBottom: 8 }}>
+              {metaData.count !== 0 && (
+                <Text>Hiện đang có {metaData.count} đơn</Text>
+              )}
             </View>
           }
           style={{ width: "100%" }}
