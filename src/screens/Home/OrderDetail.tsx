@@ -60,7 +60,6 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   fetchConversations,
   fetchTransportOrderDetail,
-  fetchTransportOrders,
 } from "src/util/querykey";
 import { socket } from "src/config/socket";
 import {
@@ -151,12 +150,9 @@ export default function OrderDetail() {
           transportationOrderId: id,
           note: noteAcceptOrder,
         });
-        queryClient.invalidateQueries({
-          queryKey: [fetchTransportOrders],
-        });
         Toast.show({
           type: "success",
-          text1: "Đã nhận đơn này",
+          text1: "Đã xác nhận giao đơn",
         });
         navigation.navigate("HomeStack", { screen: "OrderList" });
       }
@@ -181,9 +177,6 @@ export default function OrderDetail() {
         noteMutation.mutate({
           transportationOrderId: id,
           note: noteStartOrder,
-        });
-        queryClient.invalidateQueries({
-          queryKey: [fetchTransportOrders],
         });
         Toast.show({
           type: "success",
@@ -541,7 +534,17 @@ export default function OrderDetail() {
           <View>
             {order?.status === TransportOrderStatus.Waiting && (
               <Button
-                title={"Nhận Đơn"}
+                title={"Giao Đơn Này"}
+                variant={ButtonVariant.Contained}
+                style={{ marginTop: 30, marginBottom: 60 }}
+                options={{ onPress: () => acceptMutation.mutate([order.id]) }}
+                loading={acceptMutation.isPending}
+              />
+            )}
+
+            {order?.status === TransportOrderStatus.Redelivering && (
+              <Button
+                title={"Giao Đơn Này"}
                 variant={ButtonVariant.Contained}
                 style={{ marginTop: 30, marginBottom: 60 }}
                 options={{ onPress: () => acceptMutation.mutate([order.id]) }}
