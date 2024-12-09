@@ -154,7 +154,7 @@ export default function OrderDetail() {
           type: "success",
           text1: "Đã xác nhận giao đơn",
         });
-        navigation.navigate("HomeStack", { screen: "OrderList" });
+        localNavigation.navigate("OrderList");
       }
 
       if (response.errors) {
