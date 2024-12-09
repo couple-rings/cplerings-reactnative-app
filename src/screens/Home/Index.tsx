@@ -1,5 +1,5 @@
 import { useFocusEffect } from "@react-navigation/native";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
@@ -62,10 +62,15 @@ const OrderList = () => {
   const [selected, setSelected] = useState(initOption[0]);
 
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
 
   const { id: userId } = useAppSelector((state) => state.auth.userInfo);
 
-  const { data: response, isLoading } = useQuery({
+  const {
+    data: response,
+    isLoading,
+    isFetching,
+  } = useQuery({
     queryKey: [fetchTransportOrders, filterObj],
 
     queryFn: () => {
@@ -165,6 +170,13 @@ const OrderList = () => {
     }, [userId])
   );
 
+  useEffect(() => {
+    queryClient.invalidateQueries({
+      queryKey: [fetchTransportOrders, filterObj],
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterObj]);
+
   return (
     <View style={styles.container}>
       <View style={styles.statusBar}>
@@ -187,7 +199,7 @@ const OrderList = () => {
         />
       </View>
 
-      {isLoading ? (
+      {isLoading || isFetching ? (
         <View style={styles.loading}>
           <ActivityIndicator color={primaryColor} />
         </View>
