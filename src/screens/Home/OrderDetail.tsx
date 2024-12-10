@@ -60,10 +60,12 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   fetchConversations,
   fetchTransportOrderDetail,
+  fetchTransportOrders,
 } from "src/util/querykey";
 import { socket } from "src/config/socket";
 import {
   getTransportOrderDetail,
+  getTransportOrders,
   postCreateNote,
   putUpdateOrderImage,
   putUpdateOrderOnGoing,
@@ -87,11 +89,15 @@ export default function OrderDetail() {
   const [openConfirmSuccess, setOpenConfirmSuccess] = useState(false);
   const [openConfirmFail, setOpenConfirmFail] = useState(false);
 
+  const [filterObj, setFilterObj] = useState<ITransportOrderFilter | null>(
+    null
+  );
+
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
 
   const { id: userId } = useAppSelector((state) => state.auth.userInfo);
-  const { orderVerified, imageUploaded, currentOrder } = useAppSelector(
+  const { orderVerified, imageUploaded } = useAppSelector(
     (state) => state.order
   );
 
@@ -108,6 +114,15 @@ export default function OrderDetail() {
     getValues,
     formState: { errors },
   } = useForm<Inputs>();
+
+  const { data: listResponse, isFetching } = useQuery({
+    queryKey: [fetchTransportOrders, filterObj],
+
+    queryFn: () => {
+      if (filterObj) return getTransportOrders(filterObj);
+    },
+    enabled: !!filterObj,
+  });
 
   const { data: conversationResponse } = useQuery({
     queryKey: [fetchConversations, userId],
@@ -363,7 +378,16 @@ export default function OrderDetail() {
     }
   }, [orderResponse]);
 
-  if (isLoading)
+  useEffect(() => {
+    setFilterObj({
+      page: 0,
+      pageSize: 9999,
+      transporterId: userId,
+      status: TransportOrderStatus.Delivering,
+    });
+  }, [userId]);
+
+  if (isLoading || isFetching)
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size={50} color={primaryColor} />
@@ -553,7 +577,7 @@ export default function OrderDetail() {
             )}
 
             {order?.status === TransportOrderStatus.OnGoing &&
-              currentOrder === 0 && (
+              listResponse?.data?.count === 0 && (
                 <Button
                   title={"Bắt Đầu Giao"}
                   variant={ButtonVariant.Contained}
