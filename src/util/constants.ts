@@ -25,4 +25,4 @@ export const failConfirm =
 
 export const noteAcceptOrder = "Đã sắp xếp hàng lên xe";
 export const noteStartOrder = "Bắt đầu đến địa chỉ giao hàng";
-export const noteCompleteOrder = "Bắt đầu đến địa chỉ giao hàng";
+export const noteCompleteOrder = "Đơn hàng đã giao thành công";
